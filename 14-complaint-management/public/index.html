@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complaint & Feedback Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Complaint &amp; Feedback Portal</h1>
+        <p class="text-sm text-slate-500">Submit campus issues with category &amp; priority, and track resolution in Admin View</p>
+      </div>
+
+      <nav class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto" aria-label="Views">
+        <button
+          type="button"
+          id="tabSubmit"
+          class="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+        >
+          Submit Complaint
+        </button>
+        <button
+          type="button"
+          id="tabAdmin"
+          class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+        >
+          Admin Dashboard
+          <span id="openCountBadge" class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-rose-100 text-rose-800 font-semibold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <!-- SUBMIT COMPLAINT / FEEDBACK VIEW -->
+    <div id="submitView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <section class="lg:col-span-5 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Submit Complaint / Feedback</h2>
+        <p class="text-xs text-slate-500 mb-4">New tickets start with status <strong>Open</strong>.</p>
+
+        <div id="submitAlert" class="hidden mb-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="complaintForm" class="space-y-3.5" novalidate>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="reporterName" class="block text-sm font-medium text-slate-700 mb-1">Your Name</label>
+              <input
+                type="text"
+                id="reporterName"
+                placeholder="e.g. Ananya Joshi"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="reporterEmail" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <input
+                type="email"
+                id="reporterEmail"
+                placeholder="e.g. ananya@college.edu"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <select
+                id="category"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              ></select>
+            </div>
+
+            <div>
+              <label for="priority" class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+              <select
+                id="priority"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              ></select>
+            </div>
+          </div>
+
+          <div>
+            <label for="subject" class="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+            <input
+              type="text"
+              id="subject"
+              placeholder="e.g. Classroom AC not working"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <textarea
+              id="description"
+              rows="3"
+              placeholder="Provide location and issue details..."
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="submitComplaintBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Submit Ticket
+          </button>
+        </form>
+      </section>
+
+      <!-- Recent Tickets Status -->
+      <section class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Recent Tickets</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Live complaint status tracker</p>
+          </div>
+          <span id="recentCountLabel" class="text-xs font-medium text-slate-500">0 tickets</span>
+        </div>
+
+        <div id="recentTicketsList" class="divide-y divide-slate-200 text-sm"></div>
+      </section>
+    </div>
+
+    <!-- ADMIN DASHBOARD VIEW -->
+    <div id="adminView" class="hidden space-y-5">
+      <!-- Status Filter Bar & Counts -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
+        <div id="statusFilterButtons" class="flex flex-wrap items-center gap-2">
+          <button type="button" data-status="All" class="status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer">
+            All (<span id="countAll">0</span>)
+          </button>
+          <button type="button" data-status="Open" class="status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">
+            Open (<span id="countOpen">0</span>)
+          </button>
+          <button type="button" data-status="In Progress" class="status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">
+            In Progress (<span id="countInProgress">0</span>)
+          </button>
+          <button type="button" data-status="Resolved" class="status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">
+            Resolved (<span id="countResolved">0</span>)
+          </button>
+        </div>
+        <span id="adminSummary" class="text-xs text-slate-500">Loading...</span>
+      </section>
+
+      <!-- Admin Complaints Table -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200">
+          <h2 class="text-base font-semibold text-slate-900">Admin Complaint Management</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Update ticket status directly and persist changes in MongoDB.</p>
+        </div>
+
+        <div id="adminAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">Ticket</th>
+                <th class="px-4 py-3">Reporter</th>
+                <th class="px-4 py-3">Category &amp; Priority</th>
+                <th class="px-4 py-3">Issue Details</th>
+                <th class="px-4 py-3 text-center">Current Status</th>
+                <th class="px-4 py-3 text-right">Update Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="adminEmpty" class="hidden py-10 px-4 text-center text-sm text-slate-500">
+          No complaints found for this status filter.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const tabSubmit = document.getElementById('tabSubmit');
+    const tabAdmin = document.getElementById('tabAdmin');
+    const submitView = document.getElementById('submitView');
+    const adminView = document.getElementById('adminView');
+    const openCountBadge = document.getElementById('openCountBadge');
+
+    const complaintForm = document.getElementById('complaintForm');
+    const reporterNameInput = document.getElementById('reporterName');
+    const reporterEmailInput = document.getElementById('reporterEmail');
+    const categorySelect = document.getElementById('category');
+    const prioritySelect = document.getElementById('priority');
+    const subjectInput = document.getElementById('subject');
+    const descriptionInput = document.getElementById('description');
+    const submitComplaintBtn = document.getElementById('submitComplaintBtn');
+    const submitAlert = document.getElementById('submitAlert');
+
+    const recentCountLabel = document.getElementById('recentCountLabel');
+    const recentTicketsList = document.getElementById('recentTicketsList');
+
+    const statusFilterButtons = document.getElementById('statusFilterButtons');
+    const countAll = document.getElementById('countAll');
+    const countOpen = document.getElementById('countOpen');
+    const countInProgress = document.getElementById('countInProgress');
+    const countResolved = document.getElementById('countResolved');
+    const adminSummary = document.getElementById('adminSummary');
+    const adminAlert = document.getElementById('adminAlert');
+    const adminTableBody = document.getElementById('adminTableBody');
+    const adminEmpty = document.getElementById('adminEmpty');
+
+    let statusFilter = 'All';
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === adminAlert ? 'mx-5 mt-4 ' : 'mb-4 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function switchView(view) {
+      const isSubmit = view === 'submit';
+      submitView.classList.toggle('hidden', !isSubmit);
+      adminView.classList.toggle('hidden', isSubmit);
+
+      tabSubmit.className = isSubmit
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+      tabAdmin.className = !isSubmit
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+    }
+
+    function priorityBadgeHtml(priority) {
+      if (priority === 'High') {
+        return '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">High</span>';
+      }
+      if (priority === 'Medium') {
+        return '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Medium</span>';
+      }
+      return '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">Low</span>';
+    }
+
+    function statusBadgeHtml(status) {
+      if (status === 'Resolved') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Resolved</span>';
+      }
+      if (status === 'In Progress') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">In Progress</span>';
+      }
+      return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Open</span>';
+    }
+
+    async function loadMeta() {
+      const res = await fetch('/api/meta');
+      const data = await res.json();
+
+      categorySelect.innerHTML = data.categories
+        .map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+        .join('');
+
+      prioritySelect.innerHTML = data.priorities
+        .map((p) => `<option value="${escapeHtml(p)}" ${p === 'Medium' ? 'selected' : ''}>${escapeHtml(p)}</option>`)
+        .join('');
+    }
+
+    async function loadRecentTickets() {
+      try {
+        const res = await fetch('/api/complaints');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load tickets.');
+
+        recentCountLabel.textContent = `${data.complaints.length} ticket(s)`;
+        openCountBadge.textContent = data.counts.Open;
+
+        if (data.complaints.length === 0) {
+          recentTicketsList.innerHTML = '<p class="p-6 text-center text-slate-500">No tickets submitted yet.</p>';
+          return;
+        }
+
+        recentTicketsList.innerHTML = data.complaints
+          .slice(0, 6)
+          .map((item) => `
+            <div class="p-4 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-indigo-700">${escapeHtml(item.ticketCode)} &bull; ${escapeHtml(item.category)}</span>
+                <div class="flex items-center gap-1.5">
+                  ${priorityBadgeHtml(item.priority)}
+                  ${statusBadgeHtml(item.status)}
+                </div>
+              </div>
+              <p class="font-semibold text-slate-900">${escapeHtml(item.subject)}</p>
+              <p class="text-xs text-slate-600">${escapeHtml(item.description)}</p>
+              <p class="text-xs text-slate-400">Submitted by ${escapeHtml(item.reporterName)}</p>
+            </div>
+          `)
+          .join('');
+      } catch (err) {
+        showBanner(submitAlert, err.message, 'error');
+      }
+    }
+
+    async function loadAdminComplaints() {
+      try {
+        hideBanner(adminAlert);
+        const query = statusFilter === 'All' ? '' : `?status=${encodeURIComponent(statusFilter)}`;
+        const res = await fetch(`/api/complaints${query}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load complaints.');
+
+        const { complaints, counts } = data;
+        openCountBadge.textContent = counts.Open;
+        countAll.textContent = counts.All;
+        countOpen.textContent = counts.Open;
+        countInProgress.textContent = counts['In Progress'];
+        countResolved.textContent = counts.Resolved;
+        adminSummary.textContent = `Showing ${complaints.length} complaint(s)`;
+
+        if (complaints.length === 0) {
+          adminTableBody.innerHTML = '';
+          adminEmpty.classList.remove('hidden');
+          return;
+        }
+
+        adminEmpty.classList.add('hidden');
+        adminTableBody.innerHTML = complaints
+          .map((item) => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 font-bold text-indigo-700 whitespace-nowrap">${escapeHtml(item.ticketCode)}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <p class="font-medium text-slate-900">${escapeHtml(item.reporterName)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(item.reporterEmail)}</p>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap space-y-1">
+                <p class="text-xs font-medium text-slate-700">${escapeHtml(item.category)}</p>
+                ${priorityBadgeHtml(item.priority)}
+              </td>
+              <td class="px-4 py-3 max-w-xs">
+                <p class="font-medium text-slate-900">${escapeHtml(item.subject)}</p>
+                <p class="text-xs text-slate-600 mt-0.5">${escapeHtml(item.description)}</p>
+              </td>
+              <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadgeHtml(item.status)}</td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <select
+                  data-status-id="${escapeHtml(item._id)}"
+                  aria-label="Update status for ${escapeHtml(item.ticketCode)}"
+                  class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="Open" ${item.status === 'Open' ? 'selected' : ''}>Open</option>
+                  <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Resolved" ${item.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                </select>
+              </td>
+            </tr>
+          `)
+          .join('');
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    }
+
+    tabSubmit.addEventListener('click', () => switchView('submit'));
+    tabAdmin.addEventListener('click', () => {
+      switchView('admin');
+      loadAdminComplaints();
+    });
+
+    complaintForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(submitAlert);
+
+      const payload = {
+        reporterName: reporterNameInput.value.trim(),
+        reporterEmail: reporterEmailInput.value.trim(),
+        category: categorySelect.value,
+        priority: prioritySelect.value,
+        subject: subjectInput.value.trim(),
+        description: descriptionInput.value.trim(),
+      };
+
+      if (!payload.reporterName || !payload.reporterEmail || !payload.subject || !payload.description) {
+        showBanner(submitAlert, 'Name, Email, Subject, and Description are required.', 'error');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.reporterEmail)) {
+        showBanner(submitAlert, 'Please enter a valid email address.', 'error');
+        return;
+      }
+
+      submitComplaintBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/complaints', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to submit complaint.');
+
+        complaintForm.reset();
+        prioritySelect.value = 'Medium';
+        showBanner(submitAlert, `Ticket ${data.ticketCode} submitted with status Open.`, 'success');
+        await Promise.all([loadRecentTickets(), loadAdminComplaints()]);
+      } catch (err) {
+        showBanner(submitAlert, err.message, 'error');
+      } finally {
+        submitComplaintBtn.disabled = false;
+      }
+    });
+
+    statusFilterButtons.addEventListener('click', (e) => {
+      const btn = e.target.closest('.status-filter-btn');
+      if (!btn) return;
+      statusFilter = btn.dataset.status;
+
+      document.querySelectorAll('.status-filter-btn').forEach((b) => {
+        const active = b.dataset.status === statusFilter;
+        b.className = active
+          ? 'status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+          : 'status-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+      });
+      loadAdminComplaints();
+    });
+
+    adminTableBody.addEventListener('change', async (e) => {
+      const select = e.target.closest('select[data-status-id]');
+      if (!select) return;
+
+      hideBanner(adminAlert);
+      try {
+        const res = await fetch(`/api/complaints/${encodeURIComponent(select.dataset.statusId)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: select.value }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update status.');
+
+        showBanner(adminAlert, `Ticket ${data.ticketCode} updated to "${data.status}".`, 'success');
+        await Promise.all([loadAdminComplaints(), loadRecentTickets()]);
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    });
+
+    async function init() {
+      await loadMeta();
+      await Promise.all([loadRecentTickets(), loadAdminComplaints()]);
+    }
+
+    init();
+  </script>
+</body>
+</html>
