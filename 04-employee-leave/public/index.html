@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Leave Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Employee Leave Portal</h1>
+        <p class="text-sm text-slate-500">Apply for leave with date validation and review requests in Admin View</p>
+      </div>
+
+      <!-- Employee / Admin Tab Switcher -->
+      <nav class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto" aria-label="Views">
+        <button
+          type="button"
+          id="tabEmployee"
+          class="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+        >
+          Employee Apply
+        </button>
+        <button
+          type="button"
+          id="tabAdmin"
+          class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+        >
+          Admin Review
+          <span id="pendingBadge" class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-800 font-semibold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <!-- EMPLOYEE VIEW -->
+    <div id="employeeView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Leave Application Form -->
+      <section class="lg:col-span-5 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Apply for Leave</h2>
+        <p class="text-xs text-slate-500 mb-4">End date must be on or after start date.</p>
+
+        <div id="formAlert" class="hidden mb-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="leaveForm" class="space-y-3.5" novalidate>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="employeeName" class="block text-sm font-medium text-slate-700 mb-1">Employee Name</label>
+              <input
+                type="text"
+                id="employeeName"
+                placeholder="e.g. Ananya Joshi"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="employeeId" class="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>
+              <input
+                type="text"
+                id="employeeId"
+                placeholder="e.g. EMP-120"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="leaveType" class="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
+            <select
+              id="leaveType"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="Casual">Casual Leave</option>
+              <option value="Sick">Sick Leave</option>
+              <option value="Earned">Earned Leave</option>
+              <option value="Unpaid">Unpaid Leave</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="startDate" class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+              <input
+                type="date"
+                id="startDate"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="endDate" class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+              <input
+                type="date"
+                id="endDate"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div id="durationPreview" class="text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            Select start and end dates to calculate leave days.
+          </div>
+
+          <div>
+            <label for="reason" class="block text-sm font-medium text-slate-700 mb-1">Reason</label>
+            <textarea
+              id="reason"
+              rows="3"
+              placeholder="Briefly describe the reason for leave..."
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="submitLeaveBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Submit Leave Application
+          </button>
+        </form>
+      </section>
+
+      <!-- Employee Status Tracker -->
+      <section class="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Submitted Leave Requests</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Live approval status from database</p>
+          </div>
+          <span id="employeeListCount" class="text-xs font-medium text-slate-500">0 requests</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">Employee</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Dates</th>
+                <th class="px-4 py-3">Days</th>
+                <th class="px-4 py-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="employeeTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <div id="adminView" class="hidden space-y-5">
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm font-semibold text-slate-800 mr-1">Filter Status:</span>
+          <button type="button" data-status-filter="All" class="status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer">All</button>
+          <button type="button" data-status-filter="Pending" class="status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Pending</button>
+          <button type="button" data-status-filter="Approved" class="status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Approved</button>
+          <button type="button" data-status-filter="Rejected" class="status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Rejected</button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs font-medium">
+          <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">Pending: <strong id="countPending">0</strong></span>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Approved: <strong id="countApproved">0</strong></span>
+          <span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">Rejected: <strong id="countRejected">0</strong></span>
+        </div>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200">
+          <h2 class="text-base font-semibold text-slate-900">Admin Leave Approval Queue</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Approve or Reject employee leave requests; decisions persist in MongoDB.</p>
+        </div>
+
+        <div id="adminAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">Employee</th>
+                <th class="px-4 py-3">Leave Type</th>
+                <th class="px-4 py-3">Duration</th>
+                <th class="px-4 py-3">Reason</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-right">Decision</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="adminEmpty" class="hidden py-8 px-4 text-center text-sm text-slate-500">
+          No leave requests found for this filter.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const tabEmployee = document.getElementById('tabEmployee');
+    const tabAdmin = document.getElementById('tabAdmin');
+    const employeeView = document.getElementById('employeeView');
+    const adminView = document.getElementById('adminView');
+    const pendingBadge = document.getElementById('pendingBadge');
+
+    const leaveForm = document.getElementById('leaveForm');
+    const employeeNameInput = document.getElementById('employeeName');
+    const employeeIdInput = document.getElementById('employeeId');
+    const leaveTypeInput = document.getElementById('leaveType');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const reasonInput = document.getElementById('reason');
+    const durationPreview = document.getElementById('durationPreview');
+    const submitLeaveBtn = document.getElementById('submitLeaveBtn');
+    const formAlert = document.getElementById('formAlert');
+
+    const employeeListCount = document.getElementById('employeeListCount');
+    const employeeTableBody = document.getElementById('employeeTableBody');
+
+    const countPending = document.getElementById('countPending');
+    const countApproved = document.getElementById('countApproved');
+    const countRejected = document.getElementById('countRejected');
+    const adminAlert = document.getElementById('adminAlert');
+    const adminTableBody = document.getElementById('adminTableBody');
+    const adminEmpty = document.getElementById('adminEmpty');
+
+    let allLeaves = [];
+    let activeTab = 'employee';
+    let adminFilter = 'All';
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === adminAlert ? 'mx-5 mt-4 ' : 'mb-4 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function statusBadgeHtml(status) {
+      if (status === 'Approved') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Approved</span>';
+      }
+      if (status === 'Rejected') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Rejected</span>';
+      }
+      return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Pending</span>';
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      const isEmployee = tab === 'employee';
+      employeeView.classList.toggle('hidden', !isEmployee);
+      adminView.classList.toggle('hidden', isEmployee);
+
+      tabEmployee.className = isEmployee
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+      tabAdmin.className = !isEmployee
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+    }
+
+    function updateDurationPreview() {
+      const s = startDateInput.value;
+      const e = endDateInput.value;
+      if (!s || !e) {
+        durationPreview.textContent = 'Select start and end dates to calculate leave days.';
+        durationPreview.className = 'text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2';
+        return;
+      }
+
+      const startMs = Date.parse(s + 'T00:00:00Z');
+      const endMs = Date.parse(e + 'T00:00:00Z');
+      if (endMs < startMs) {
+        durationPreview.textContent = 'Invalid range: End date cannot be before start date.';
+        durationPreview.className = 'text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2';
+        return;
+      }
+
+      const days = Math.round((endMs - startMs) / 86400000) + 1;
+      durationPreview.textContent = `Duration: ${days} day(s) (${s} to ${e})`;
+      durationPreview.className = 'text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2';
+    }
+
+    function renderViews() {
+      const pending = allLeaves.filter((l) => l.status === 'Pending').length;
+      const approved = allLeaves.filter((l) => l.status === 'Approved').length;
+      const rejected = allLeaves.filter((l) => l.status === 'Rejected').length;
+
+      pendingBadge.textContent = pending;
+      countPending.textContent = pending;
+      countApproved.textContent = approved;
+      countRejected.textContent = rejected;
+      employeeListCount.textContent = `${allLeaves.length} request(s)`;
+
+      // Employee table
+      employeeTableBody.innerHTML = allLeaves
+        .map((leave) => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="font-medium text-slate-900">${escapeHtml(leave.employeeName)}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(leave.employeeId)}</p>
+            </td>
+            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">${escapeHtml(leave.leaveType)}</td>
+            <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(leave.startDate)} &rarr; ${escapeHtml(leave.endDate)}</td>
+            <td class="px-4 py-3 text-slate-800 font-medium whitespace-nowrap">${escapeHtml(leave.days)}d</td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadgeHtml(leave.status)}</td>
+          </tr>
+        `)
+        .join('');
+
+      // Admin table
+      const filtered = adminFilter === 'All'
+        ? allLeaves
+        : allLeaves.filter((l) => l.status === adminFilter);
+
+      if (filtered.length === 0) {
+        adminTableBody.innerHTML = '';
+        adminEmpty.classList.remove('hidden');
+        return;
+      }
+
+      adminEmpty.classList.add('hidden');
+      adminTableBody.innerHTML = filtered
+        .map((leave) => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="font-medium text-slate-900">${escapeHtml(leave.employeeName)}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(leave.employeeId)}</p>
+            </td>
+            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">${escapeHtml(leave.leaveType)}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="text-slate-800 font-medium">${escapeHtml(leave.days)} day(s)</p>
+              <p class="text-xs text-slate-500">${escapeHtml(leave.startDate)} to ${escapeHtml(leave.endDate)}</p>
+            </td>
+            <td class="px-4 py-3 text-slate-600 max-w-xs">${escapeHtml(leave.reason)}</td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadgeHtml(leave.status)}</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-2">
+              <button
+                type="button"
+                data-decide-id="${escapeHtml(leave._id)}"
+                data-status="Approved"
+                ${leave.status === 'Approved' ? 'disabled' : ''}
+                class="px-3 py-1 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white cursor-pointer"
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                data-decide-id="${escapeHtml(leave._id)}"
+                data-status="Rejected"
+                ${leave.status === 'Rejected' ? 'disabled' : ''}
+                class="px-3 py-1 rounded-md text-xs font-medium bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white cursor-pointer"
+              >
+                Reject
+              </button>
+            </td>
+          </tr>
+        `)
+        .join('');
+    }
+
+    async function loadLeaves() {
+      try {
+        const res = await fetch('/api/leaves');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load leave requests.');
+        allLeaves = data;
+        renderViews();
+      } catch (err) {
+        showBanner(activeTab === 'admin' ? adminAlert : formAlert, err.message, 'error');
+      }
+    }
+
+    tabEmployee.addEventListener('click', () => switchTab('employee'));
+    tabAdmin.addEventListener('click', () => switchTab('admin'));
+
+    startDateInput.addEventListener('change', updateDurationPreview);
+    endDateInput.addEventListener('change', updateDurationPreview);
+
+    leaveForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(formAlert);
+
+      const payload = {
+        employeeName: employeeNameInput.value.trim(),
+        employeeId: employeeIdInput.value.trim(),
+        leaveType: leaveTypeInput.value,
+        startDate: startDateInput.value,
+        endDate: endDateInput.value,
+        reason: reasonInput.value.trim(),
+      };
+
+      if (!payload.employeeName || !payload.employeeId || !payload.startDate || !payload.endDate || !payload.reason) {
+        showBanner(formAlert, 'Please fill in all required fields.', 'error');
+        return;
+      }
+
+      if (payload.endDate < payload.startDate) {
+        showBanner(formAlert, 'Validation error: End date cannot be before start date.', 'error');
+        return;
+      }
+
+      submitLeaveBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/leaves', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to submit leave request.');
+
+        leaveForm.reset();
+        updateDurationPreview();
+        showBanner(
+          formAlert,
+          `Leave request submitted for ${data.days} day(s) — Status: Pending.`,
+          'success'
+        );
+        await loadLeaves();
+      } catch (err) {
+        showBanner(formAlert, err.message, 'error');
+      } finally {
+        submitLeaveBtn.disabled = false;
+      }
+    });
+
+    document.querySelectorAll('.status-filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        adminFilter = btn.dataset.statusFilter;
+        document.querySelectorAll('.status-filter-btn').forEach((b) => {
+          const active = b.dataset.statusFilter === adminFilter;
+          b.className = active
+            ? 'status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+            : 'status-filter-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+        });
+        renderViews();
+      });
+    });
+
+    adminTableBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-decide-id]');
+      if (!btn) return;
+
+      hideBanner(adminAlert);
+      const id = btn.dataset.decideId;
+      const status = btn.dataset.status;
+
+      try {
+        const res = await fetch(`/api/leaves/${encodeURIComponent(id)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update leave status.');
+
+        showBanner(
+          adminAlert,
+          `${data.employeeName}'s leave request marked as ${data.status}.`,
+          'success'
+        );
+        await loadLeaves();
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    });
+
+    loadLeaves();
+  </script>
+</body>
+</html>
