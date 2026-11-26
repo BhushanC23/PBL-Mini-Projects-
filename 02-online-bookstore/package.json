@@ -1,0 +1,14 @@
+{
+  "name": "02-online-bookstore",
+  "version": "1.0.0",
+  "description": "Standalone Online Bookstore with category filters, persistent cart, and order checkout",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5"
+  }
+}

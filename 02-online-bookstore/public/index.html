@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Bookstore</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Campus Online Bookstore</h1>
+        <p class="text-sm text-slate-500">Browse books by category, add to cart, and place your order</p>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 font-medium border border-indigo-200">
+          Cart Items: <strong id="headerCartCount">0</strong>
+        </span>
+        <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 font-medium">
+          Total: <strong id="headerCartTotal">&#8377;0</strong>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Category Filters + Book Catalogue -->
+    <section class="lg:col-span-8 space-y-5">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
+        <div id="categoryFilters" class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-category="All"
+            class="filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+          >
+            All
+          </button>
+          <button
+            type="button"
+            data-category="Programming"
+            class="filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+          >
+            Programming
+          </button>
+          <button
+            type="button"
+            data-category="Fiction"
+            class="filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+          >
+            Fiction
+          </button>
+          <button
+            type="button"
+            data-category="Science"
+            class="filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+          >
+            Science
+          </button>
+        </div>
+        <span id="catalogueCount" class="text-xs text-slate-500">Loading books...</span>
+      </div>
+
+      <div id="catalogueAlert" class="hidden rounded-lg px-4 py-2.5 text-sm border" role="alert"></div>
+
+      <div id="booksGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+      <!-- Recent Orders Section -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-semibold text-slate-900">Recent Orders (Saved in MongoDB)</h2>
+          <span id="ordersCount" class="text-xs text-slate-500">0 orders</span>
+        </div>
+        <div id="ordersList" class="space-y-2.5 text-sm text-slate-600"></div>
+      </section>
+    </section>
+
+    <!-- Right Column: Persistent Shopping Cart & Checkout -->
+    <aside class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h2 class="text-base font-semibold text-slate-900">Shopping Cart</h2>
+        <span id="cartItemLabel" class="text-xs font-medium text-slate-500">0 items</span>
+      </div>
+
+      <div id="cartAlert" class="hidden rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <div id="cartItemsContainer" class="space-y-3"></div>
+
+      <div class="border-t border-slate-200 pt-3 flex items-center justify-between text-sm">
+        <span class="font-medium text-slate-600">Grand Total</span>
+        <span id="cartGrandTotal" class="text-lg font-bold text-slate-900">&#8377;0</span>
+      </div>
+
+      <form id="checkoutForm" class="space-y-3 border-t border-slate-200 pt-4" novalidate>
+        <h3 class="text-sm font-semibold text-slate-800">Checkout Details</h3>
+
+        <div>
+          <label for="customerName" class="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+          <input
+            type="text"
+            id="customerName"
+            placeholder="e.g. Aarav Sharma"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label for="customerEmail" class="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+          <input
+            type="email"
+            id="customerEmail"
+            placeholder="e.g. aarav@college.edu"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          id="placeOrderBtn"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Place Order
+        </button>
+      </form>
+    </aside>
+  </main>
+
+  <script>
+    const categoryFilters = document.getElementById('categoryFilters');
+    const catalogueCount = document.getElementById('catalogueCount');
+    const catalogueAlert = document.getElementById('catalogueAlert');
+    const booksGrid = document.getElementById('booksGrid');
+
+    const headerCartCount = document.getElementById('headerCartCount');
+    const headerCartTotal = document.getElementById('headerCartTotal');
+    const cartItemLabel = document.getElementById('cartItemLabel');
+    const cartAlert = document.getElementById('cartAlert');
+    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    const cartGrandTotal = document.getElementById('cartGrandTotal');
+
+    const checkoutForm = document.getElementById('checkoutForm');
+    const customerNameInput = document.getElementById('customerName');
+    const customerEmailInput = document.getElementById('customerEmail');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+    const ordersCount = document.getElementById('ordersCount');
+    const ordersList = document.getElementById('ordersList');
+
+    let selectedCategory = 'All';
+    let currentCart = { items: [], totalItems: 0, totalAmount: 0 };
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      el.className = 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function updateFilterButtons() {
+      document.querySelectorAll('.filter-btn').forEach((btn) => {
+        const active = btn.dataset.category === selectedCategory;
+        btn.className = active
+          ? 'filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+          : 'filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+      });
+    }
+
+    function renderBooks(books) {
+      catalogueCount.textContent = `${books.length} book(s) shown`;
+
+      if (books.length === 0) {
+        booksGrid.innerHTML = `
+          <div class="sm:col-span-2 bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-500">
+            No books found in this category.
+          </div>
+        `;
+        return;
+      }
+
+      booksGrid.innerHTML = books
+        .map((book) => {
+          const outOfStock = book.stock <= 0;
+          const lowStock = book.stock > 0 && book.stock <= 3;
+          const stockBadge = outOfStock
+            ? '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">Out of Stock</span>'
+            : lowStock
+              ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">Low Stock (${book.stock} left)</span>`
+              : `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock (${book.stock})</span>`;
+
+          return `
+            <article class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col justify-between gap-4">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                    ${escapeHtml(book.category)}
+                  </span>
+                  ${stockBadge}
+                </div>
+                <h3 class="text-base font-semibold text-slate-900">${escapeHtml(book.title)}</h3>
+                <p class="text-xs text-slate-500 mt-0.5">by ${escapeHtml(book.author)}</p>
+                <p class="text-sm text-slate-600 mt-2.5 leading-relaxed">${escapeHtml(book.description)}</p>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <span class="text-lg font-bold text-slate-900">&#8377;${escapeHtml(book.price)}</span>
+                <button
+                  type="button"
+                  data-add-id="${escapeHtml(book._id)}"
+                  ${outOfStock ? 'disabled' : ''}
+                  class="px-3.5 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed text-white transition-colors cursor-pointer"
+                >
+                  ${outOfStock ? 'Unavailable' : 'Add to Cart'}
+                </button>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    function renderCart(cart) {
+      currentCart = cart;
+      headerCartCount.textContent = cart.totalItems;
+      headerCartTotal.textContent = `\u20B9${cart.totalAmount}`;
+      cartItemLabel.textContent = `${cart.totalItems} item(s)`;
+      cartGrandTotal.textContent = `\u20B9${cart.totalAmount}`;
+      placeOrderBtn.disabled = cart.items.length === 0;
+
+      if (cart.items.length === 0) {
+        cartItemsContainer.innerHTML = `
+          <p class="text-sm text-slate-500 py-4 text-center">
+            Your cart is empty. Click "Add to Cart" on any book.
+          </p>
+        `;
+        return;
+      }
+
+      cartItemsContainer.innerHTML = cart.items
+        .map((item) => `
+          <div class="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">${escapeHtml(item.title)}</p>
+                <p class="text-xs text-slate-500">&#8377;${escapeHtml(item.price)} each (Stock: ${escapeHtml(item.stock)})</p>
+              </div>
+              <button
+                type="button"
+                data-remove-id="${escapeHtml(item.bookId)}"
+                class="text-xs text-rose-600 hover:text-rose-800 font-medium cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="inline-flex items-center border border-slate-300 rounded-md bg-white">
+                <button
+                  type="button"
+                  data-qty-id="${escapeHtml(item.bookId)}"
+                  data-next-qty="${item.quantity - 1}"
+                  class="px-2.5 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  &minus;
+                </button>
+                <span class="px-3 py-1 text-sm font-medium text-slate-900">${item.quantity}</span>
+                <button
+                  type="button"
+                  data-qty-id="${escapeHtml(item.bookId)}"
+                  data-next-qty="${item.quantity + 1}"
+                  class="px-2.5 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+              <span class="text-sm font-semibold text-slate-900">&#8377;${escapeHtml(item.lineTotal)}</span>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderOrders(orders) {
+      ordersCount.textContent = `${orders.length} order(s)`;
+
+      if (orders.length === 0) {
+        ordersList.innerHTML = '<p class="text-slate-500">No orders placed yet.</p>';
+        return;
+      }
+
+      ordersList.innerHTML = orders
+        .map((order) => {
+          const itemSummary = order.items
+            .map((i) => `${escapeHtml(i.title)} x${i.quantity}`)
+            .join(', ');
+          const dateLabel = new Date(order.createdAt).toLocaleString();
+
+          return `
+            <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <p class="font-medium text-slate-900">
+                  ${escapeHtml(order.customerName)}
+                  <span class="text-xs font-normal text-slate-500">(${escapeHtml(order.customerEmail)})</span>
+                </p>
+                <p class="text-xs text-slate-600 mt-0.5">${itemSummary}</p>
+                <p class="text-xs text-slate-400 mt-0.5">${escapeHtml(dateLabel)}</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ${escapeHtml(order.status)}
+                </span>
+                <span class="font-bold text-slate-900">&#8377;${escapeHtml(order.totalAmount)}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadBooks() {
+      try {
+        hideBanner(catalogueAlert);
+        const query = selectedCategory === 'All'
+          ? ''
+          : `?category=${encodeURIComponent(selectedCategory)}`;
+        const res = await fetch(`/api/books${query}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load books.');
+        renderBooks(data);
+      } catch (err) {
+        showBanner(catalogueAlert, err.message, 'error');
+      }
+    }
+
+    async function loadCart() {
+      try {
+        const res = await fetch('/api/cart');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load cart.');
+        renderCart(data);
+      } catch (err) {
+        showBanner(cartAlert, err.message, 'error');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load orders.');
+        renderOrders(data);
+      } catch (err) {
+        ordersList.innerHTML = `<p class="text-rose-600">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    categoryFilters.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      selectedCategory = btn.dataset.category;
+      updateFilterButtons();
+      loadBooks();
+    });
+
+    booksGrid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-add-id]');
+      if (!btn) return;
+
+      hideBanner(catalogueAlert);
+      hideBanner(cartAlert);
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookId: btn.dataset.addId, quantity: 1 }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not add book to cart.');
+
+        renderCart(data);
+        showBanner(cartAlert, 'Book added to cart.', 'success');
+      } catch (err) {
+        showBanner(cartAlert, err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    cartItemsContainer.addEventListener('click', async (e) => {
+      const qtyBtn = e.target.closest('button[data-qty-id]');
+      if (qtyBtn) {
+        hideBanner(cartAlert);
+        const bookId = qtyBtn.dataset.qtyId;
+        const nextQty = Number(qtyBtn.dataset.nextQty);
+
+        try {
+          const res = await fetch(`/api/cart/${encodeURIComponent(bookId)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: nextQty }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not update quantity.');
+          renderCart(data);
+        } catch (err) {
+          showBanner(cartAlert, err.message, 'error');
+        }
+        return;
+      }
+
+      const removeBtn = e.target.closest('button[data-remove-id]');
+      if (removeBtn) {
+        hideBanner(cartAlert);
+        try {
+          const res = await fetch(`/api/cart/${encodeURIComponent(removeBtn.dataset.removeId)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not remove item.');
+          renderCart(data);
+        } catch (err) {
+          showBanner(cartAlert, err.message, 'error');
+        }
+      }
+    });
+
+    checkoutForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(cartAlert);
+
+      const customerName = customerNameInput.value.trim();
+      const customerEmail = customerEmailInput.value.trim();
+
+      if (currentCart.items.length === 0) {
+        showBanner(cartAlert, 'Your cart is empty. Add books before placing an order.', 'error');
+        return;
+      }
+
+      if (!customerName || !customerEmail) {
+        showBanner(cartAlert, 'Please enter both your name and email address.', 'error');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+        showBanner(cartAlert, 'Please enter a valid email address.', 'error');
+        return;
+      }
+
+      placeOrderBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerName, customerEmail }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to place order.');
+
+        checkoutForm.reset();
+        showBanner(cartAlert, `Order confirmed! Total: \u20B9${data.totalAmount}`, 'success');
+        await Promise.all([loadCart(), loadBooks(), loadOrders()]);
+      } catch (err) {
+        showBanner(cartAlert, err.message, 'error');
+      } finally {
+        placeOrderBtn.disabled = currentCart.items.length === 0;
+      }
+    });
+
+    Promise.all([loadBooks(), loadCart(), loadOrders()]);
+  </script>
+</body>
+</html>
