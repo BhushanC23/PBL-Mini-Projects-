@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Event Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">College Event Registration</h1>
+        <p class="text-sm text-slate-500">Register for upcoming campus events (one registration per email)</p>
+      </div>
+
+      <nav class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto" aria-label="Views">
+        <button
+          type="button"
+          id="tabRegister"
+          class="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+        >
+          Register
+        </button>
+        <button
+          type="button"
+          id="tabAdmin"
+          class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+        >
+          Admin Registrants
+          <span id="registrantCountBadge" class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800 font-semibold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+    <!-- REGISTER VIEW -->
+    <section id="registerView" class="max-w-xl mx-auto bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-slate-900 mb-1">Participant Registration Form</h2>
+      <p class="text-xs text-slate-500 mb-4">Validates email format and 10-digit mobile number; duplicate emails are blocked.</p>
+
+      <div id="formAlert" class="hidden mb-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <form id="registrationForm" class="space-y-4" novalidate>
+        <div>
+          <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            placeholder="e.g. Ananya Deshmukh"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p id="nameError" class="hidden text-xs text-rose-600 mt-1"></p>
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="e.g. ananya@college.edu"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p id="emailError" class="hidden text-xs text-rose-600 mt-1"></p>
+        </div>
+
+        <div>
+          <label for="mobile" class="block text-sm font-medium text-slate-700 mb-1">Mobile Number (10 digits)</label>
+          <input
+            type="tel"
+            id="mobile"
+            maxlength="10"
+            placeholder="e.g. 9876543210"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p id="mobileError" class="hidden text-xs text-rose-600 mt-1"></p>
+        </div>
+
+        <div>
+          <label for="event" class="block text-sm font-medium text-slate-700 mb-1">Select Event</label>
+          <select
+            id="event"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          ></select>
+          <p id="eventError" class="hidden text-xs text-rose-600 mt-1"></p>
+        </div>
+
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Complete Registration
+        </button>
+      </form>
+    </section>
+
+    <!-- ADMIN VIEW -->
+    <section id="adminView" class="hidden bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Registered Participants (Admin View)</h2>
+          <p id="adminSummary" class="text-xs text-slate-500 mt-0.5">Loading registrants...</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2">
+          <select
+            id="eventFilter"
+            class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value="All">All Events</option>
+          </select>
+          <input
+            type="search"
+            id="searchInput"
+            placeholder="Search name, email, mobile..."
+            class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+      </div>
+
+      <div id="adminAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-4 py-3">Name</th>
+              <th class="px-4 py-3">Email</th>
+              <th class="px-4 py-3">Mobile</th>
+              <th class="px-4 py-3">Event</th>
+              <th class="px-4 py-3">Registered On</th>
+              <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="registrantsTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+        </table>
+      </div>
+
+      <div id="adminEmpty" class="hidden py-10 px-4 text-center text-sm text-slate-500">
+        No matching registrants found.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tabRegister = document.getElementById('tabRegister');
+    const tabAdmin = document.getElementById('tabAdmin');
+    const registerView = document.getElementById('registerView');
+    const adminView = document.getElementById('adminView');
+    const registrantCountBadge = document.getElementById('registrantCountBadge');
+
+    const registrationForm = document.getElementById('registrationForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const mobileInput = document.getElementById('mobile');
+    const eventSelect = document.getElementById('event');
+    const submitBtn = document.getElementById('submitBtn');
+    const formAlert = document.getElementById('formAlert');
+
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const mobileError = document.getElementById('mobileError');
+    const eventError = document.getElementById('eventError');
+
+    const eventFilter = document.getElementById('eventFilter');
+    const searchInput = document.getElementById('searchInput');
+    const adminSummary = document.getElementById('adminSummary');
+    const adminAlert = document.getElementById('adminAlert');
+    const registrantsTableBody = document.getElementById('registrantsTableBody');
+    const adminEmpty = document.getElementById('adminEmpty');
+
+    let searchTimer = null;
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === adminAlert ? 'mx-5 mt-4 ' : 'mb-4 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function setFieldError(el, msg) {
+      if (msg) {
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      } else {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+    }
+
+    function clearAllFieldErrors() {
+      setFieldError(nameError, '');
+      setFieldError(emailError, '');
+      setFieldError(mobileError, '');
+      setFieldError(eventError, '');
+    }
+
+    function switchTab(tab) {
+      const isRegister = tab === 'register';
+      registerView.classList.toggle('hidden', !isRegister);
+      adminView.classList.toggle('hidden', isRegister);
+
+      tabRegister.className = isRegister
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+      tabAdmin.className = !isRegister
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+    }
+
+    function validateForm() {
+      clearAllFieldErrors();
+      let valid = true;
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const mobile = mobileInput.value.trim();
+      const event = eventSelect.value;
+
+      if (!name) {
+        setFieldError(nameError, 'Full name is required.');
+        valid = false;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setFieldError(emailError, 'Enter a valid email address (e.g. name@college.edu).');
+        valid = false;
+      }
+
+      if (!/^\d{10}$/.test(mobile)) {
+        setFieldError(mobileError, 'Mobile number must be exactly 10 numeric digits.');
+        valid = false;
+      }
+
+      if (!event) {
+        setFieldError(eventError, 'Please select an event.');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    async function loadEvents() {
+      const res = await fetch('/api/events');
+      const data = await res.json();
+
+      eventSelect.innerHTML = data.events
+        .map((ev) => `<option value="${escapeHtml(ev)}">${escapeHtml(ev)}</option>`)
+        .join('');
+
+      eventFilter.innerHTML = '<option value="All">All Events</option>' +
+        data.events.map((ev) => `<option value="${escapeHtml(ev)}">${escapeHtml(ev)}</option>`).join('');
+    }
+
+    async function loadRegistrants() {
+      try {
+        hideBanner(adminAlert);
+        const params = new URLSearchParams();
+        if (eventFilter.value && eventFilter.value !== 'All') params.set('event', eventFilter.value);
+        if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
+
+        const res = await fetch(`/api/registrations?${params.toString()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load registrants.');
+
+        // Fetch unfiltered count for badge when filtered
+        if (params.toString()) {
+          const allRes = await fetch('/api/registrations');
+          const allData = await allRes.json();
+          if (allRes.ok) registrantCountBadge.textContent = allData.length;
+        } else {
+          registrantCountBadge.textContent = data.length;
+        }
+
+        adminSummary.textContent = `Showing ${data.length} registrant(s)`;
+
+        if (data.length === 0) {
+          registrantsTableBody.innerHTML = '';
+          adminEmpty.classList.remove('hidden');
+          return;
+        }
+
+        adminEmpty.classList.add('hidden');
+        registrantsTableBody.innerHTML = data
+          .map((item) => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${escapeHtml(item.name)}</td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(item.email)}</td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(item.mobile)}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  ${escapeHtml(item.event)}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${escapeHtml(new Date(item.createdAt).toLocaleDateString())}</td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <button
+                  type="button"
+                  data-delete-id="${escapeHtml(item._id)}"
+                  class="text-rose-600 hover:text-rose-800 font-medium text-xs px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          `)
+          .join('');
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    }
+
+    tabRegister.addEventListener('click', () => switchTab('register'));
+    tabAdmin.addEventListener('click', () => {
+      switchTab('admin');
+      loadRegistrants();
+    });
+
+    registrationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(formAlert);
+
+      if (!validateForm()) {
+        showBanner(formAlert, 'Please fix the highlighted validation errors below.', 'error');
+        return;
+      }
+
+      const payload = {
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        mobile: mobileInput.value.trim(),
+        event: eventSelect.value,
+      };
+
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/registrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not complete registration.');
+
+        registrationForm.reset();
+        clearAllFieldErrors();
+        showBanner(
+          formAlert,
+          `Successfully registered ${data.name} for "${data.event}".`,
+          'success'
+        );
+        await loadRegistrants();
+      } catch (err) {
+        showBanner(formAlert, err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    eventFilter.addEventListener('change', loadRegistrants);
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadRegistrants, 150);
+    });
+
+    registrantsTableBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-delete-id]');
+      if (!btn) return;
+      if (!confirm('Remove this registration?')) return;
+
+      hideBanner(adminAlert);
+      try {
+        const res = await fetch(`/api/registrations/${encodeURIComponent(btn.dataset.deleteId)}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to remove registration.');
+
+        showBanner(adminAlert, 'Registration removed.', 'success');
+        await loadRegistrants();
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    });
+
+    async function init() {
+      await loadEvents();
+      await loadRegistrants();
+    }
+
+    init();
+  </script>
+</body>
+</html>
