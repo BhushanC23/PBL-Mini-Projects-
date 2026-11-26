@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Job & Internship Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Campus Job &amp; Internship Portal</h1>
+        <p class="text-sm text-slate-500">Students browse &amp; apply; Recruiters post openings &amp; review applications</p>
+      </div>
+
+      <nav class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto" aria-label="Portal Views">
+        <button
+          type="button"
+          id="tabStudent"
+          class="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+        >
+          Student View
+          <span id="jobsCountBadge" class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-indigo-500 text-white font-semibold">0</span>
+        </button>
+        <button
+          type="button"
+          id="tabRecruiter"
+          class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+        >
+          Recruiter View
+          <span id="appsCountBadge" class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-slate-200 text-slate-800 font-semibold">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <!-- STUDENT VIEW -->
+    <div id="studentView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Left: Search + Job Listings -->
+      <section class="lg:col-span-8 space-y-4">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Open Positions</h2>
+            <p id="jobsSummary" class="text-xs text-slate-500 mt-0.5">Loading openings...</p>
+          </div>
+          <input
+            type="search"
+            id="searchInput"
+            placeholder="Search by job title or location..."
+            aria-label="Search jobs by title or location"
+            class="w-full sm:w-72 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div id="studentJobsAlert" class="hidden rounded-lg px-4 py-2.5 text-sm border" role="alert"></div>
+        <div id="jobsGrid" class="grid grid-cols-1 gap-4"></div>
+      </section>
+
+      <!-- Right: Student Application Form -->
+      <aside class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Apply for a Job</h2>
+        <p class="text-xs text-slate-500 mb-3">Select any job card or choose from the dropdown below.</p>
+
+        <div id="applyAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="applyForm" class="space-y-3" novalidate>
+          <div>
+            <label for="applyJobSelect" class="block text-sm font-medium text-slate-700 mb-1">Target Role</label>
+            <select
+              id="applyJobSelect"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></select>
+          </div>
+
+          <div>
+            <label for="studentName" class="block text-sm font-medium text-slate-700 mb-1">Student Name</label>
+            <input
+              type="text"
+              id="studentName"
+              placeholder="e.g. Rohan Kulkarni"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="studentEmail" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input
+              type="email"
+              id="studentEmail"
+              placeholder="e.g. rohan@college.edu"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="branch" class="block text-sm font-medium text-slate-700 mb-1">Branch / Class</label>
+              <input
+                type="text"
+                id="branch"
+                placeholder="e.g. BE-CS"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="cgpa" class="block text-sm font-medium text-slate-700 mb-1">CGPA (0–10)</label>
+              <input
+                type="number"
+                id="cgpa"
+                min="0"
+                max="10"
+                step="0.1"
+                placeholder="e.g. 8.4"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="coverNote" class="block text-sm font-medium text-slate-700 mb-1">Skills / Short Note</label>
+            <textarea
+              id="coverNote"
+              rows="2"
+              placeholder="Briefly mention relevant skills or projects..."
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="applySubmitBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Submit Application
+          </button>
+        </form>
+      </aside>
+    </div>
+
+    <!-- RECRUITER VIEW -->
+    <div id="recruiterView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Post Job Form -->
+      <section class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Post a New Job</h2>
+        <p class="text-xs text-slate-500 mb-3">Published roles appear immediately in Student View.</p>
+
+        <div id="postJobAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="postJobForm" class="space-y-3" novalidate>
+          <div>
+            <label for="jobTitle" class="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
+            <input
+              type="text"
+              id="jobTitle"
+              placeholder="e.g. Full-Stack Intern"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="company" class="block text-sm font-medium text-slate-700 mb-1">Company</label>
+              <input
+                type="text"
+                id="company"
+                placeholder="e.g. TechNova"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Location</label>
+              <input
+                type="text"
+                id="location"
+                placeholder="e.g. Pune / Remote"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="jobType" class="block text-sm font-medium text-slate-700 mb-1">Job Type</label>
+              <select
+                id="jobType"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="Internship">Internship</option>
+                <option value="Full-Time">Full-Time</option>
+                <option value="Part-Time">Part-Time</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="salary" class="block text-sm font-medium text-slate-700 mb-1">Salary / Stipend</label>
+              <input
+                type="text"
+                id="salary"
+                placeholder="e.g. 20,000 / mo"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <textarea
+              id="description"
+              rows="3"
+              placeholder="Role responsibilities and required skills..."
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="postJobBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Publish Job
+          </button>
+        </form>
+      </section>
+
+      <!-- Recruiter Applications & Manage Jobs -->
+      <div class="lg:col-span-8 space-y-6">
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">Student Applications</h2>
+              <p class="text-xs text-slate-500 mt-0.5">All applications saved in MongoDB</p>
+            </div>
+            <span id="recruiterAppsSummary" class="text-xs font-medium text-slate-500">0 applications</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <th class="px-4 py-3">Student</th>
+                  <th class="px-4 py-3">Academic</th>
+                  <th class="px-4 py-3">Applied Role</th>
+                  <th class="px-4 py-3">Note</th>
+                </tr>
+              </thead>
+              <tbody id="applicationsTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+            </table>
+          </div>
+          <div id="applicationsEmpty" class="hidden py-8 px-4 text-center text-sm text-slate-500">
+            No student applications received yet.
+          </div>
+        </section>
+
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-200">
+            <h2 class="text-base font-semibold text-slate-900">Manage Posted Jobs</h2>
+          </div>
+          <div id="recruiterJobsAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+          <div id="recruiterJobsList" class="divide-y divide-slate-200 text-sm"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const tabStudent = document.getElementById('tabStudent');
+    const tabRecruiter = document.getElementById('tabRecruiter');
+    const studentView = document.getElementById('studentView');
+    const recruiterView = document.getElementById('recruiterView');
+    const jobsCountBadge = document.getElementById('jobsCountBadge');
+    const appsCountBadge = document.getElementById('appsCountBadge');
+
+    const searchInput = document.getElementById('searchInput');
+    const jobsSummary = document.getElementById('jobsSummary');
+    const studentJobsAlert = document.getElementById('studentJobsAlert');
+    const jobsGrid = document.getElementById('jobsGrid');
+
+    const applyForm = document.getElementById('applyForm');
+    const applyJobSelect = document.getElementById('applyJobSelect');
+    const studentNameInput = document.getElementById('studentName');
+    const studentEmailInput = document.getElementById('studentEmail');
+    const branchInput = document.getElementById('branch');
+    const cgpaInput = document.getElementById('cgpa');
+    const coverNoteInput = document.getElementById('coverNote');
+    const applySubmitBtn = document.getElementById('applySubmitBtn');
+    const applyAlert = document.getElementById('applyAlert');
+
+    const postJobForm = document.getElementById('postJobForm');
+    const postJobAlert = document.getElementById('postJobAlert');
+    const postJobBtn = document.getElementById('postJobBtn');
+    const recruiterAppsSummary = document.getElementById('recruiterAppsSummary');
+    const applicationsTableBody = document.getElementById('applicationsTableBody');
+    const applicationsEmpty = document.getElementById('applicationsEmpty');
+    const recruiterJobsAlert = document.getElementById('recruiterJobsAlert');
+    const recruiterJobsList = document.getElementById('recruiterJobsList');
+
+    let searchTimer = null;
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const margin = el === recruiterJobsAlert ? 'mx-5 mt-4 ' : 'mb-3 ';
+      el.className = margin + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function switchView(view) {
+      const isStudent = view === 'student';
+      studentView.classList.toggle('hidden', !isStudent);
+      recruiterView.classList.toggle('hidden', isStudent);
+
+      tabStudent.className = isStudent
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+      tabRecruiter.className = !isStudent
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+    }
+
+    function renderStudentJobs(jobs) {
+      const q = searchInput.value.trim();
+      jobsSummary.textContent = q
+        ? `Showing ${jobs.length} matching job(s) for "${q}"`
+        : `Showing ${jobs.length} active job(s)`;
+
+      if (jobs.length === 0) {
+        jobsGrid.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-500">
+            No jobs match your title or location filter.
+          </div>
+        `;
+        return;
+      }
+
+      jobsGrid.innerHTML = jobs
+        .map((job) => `
+          <article class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div>
+                <h3 class="text-base font-semibold text-slate-900">${escapeHtml(job.title)}</h3>
+                <p class="text-sm text-slate-600">${escapeHtml(job.company)} &bull; <span class="font-medium text-slate-800">${escapeHtml(job.location)}</span></p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  ${escapeHtml(job.jobType)}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                  &#8377;${escapeHtml(job.salary)}
+                </span>
+              </div>
+            </div>
+
+            <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(job.description)}</p>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs text-slate-500">${job.applicationCount} applicant(s)</span>
+              <button
+                type="button"
+                data-apply-job-id="${escapeHtml(job._id)}"
+                class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium cursor-pointer"
+              >
+                Apply Now
+              </button>
+            </div>
+          </article>
+        `)
+        .join('');
+    }
+
+    function renderAllJobsDropdownAndRecruiterList(allJobs) {
+      jobsCountBadge.textContent = allJobs.length;
+      const previous = applyJobSelect.value;
+
+      if (allJobs.length === 0) {
+        applyJobSelect.innerHTML = '<option value="">No open jobs</option>';
+        recruiterJobsList.innerHTML = '<p class="p-5 text-slate-500">No jobs posted yet.</p>';
+        return;
+      }
+
+      applyJobSelect.innerHTML = allJobs
+        .map((j) => `<option value="${escapeHtml(j._id)}">${escapeHtml(j.title)} — ${escapeHtml(j.company)} (${escapeHtml(j.location)})</option>`)
+        .join('');
+
+      if (previous && allJobs.some((j) => j._id === previous)) {
+        applyJobSelect.value = previous;
+      }
+
+      recruiterJobsList.innerHTML = allJobs
+        .map((j) => `
+          <div class="p-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="font-medium text-slate-900">${escapeHtml(j.title)} <span class="text-xs font-normal text-slate-500">(${escapeHtml(j.company)} &bull; ${escapeHtml(j.location)})</span></p>
+              <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(j.jobType)} &bull; &#8377;${escapeHtml(j.salary)} &bull; ${j.applicationCount} applicant(s)</p>
+            </div>
+            <button
+              type="button"
+              data-delete-job="${escapeHtml(j._id)}"
+              class="text-rose-600 hover:text-rose-800 text-xs font-medium px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer shrink-0"
+            >
+              Delete
+            </button>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function loadJobs() {
+      try {
+        hideBanner(studentJobsAlert);
+        const q = searchInput.value.trim();
+
+        const [filteredRes, allRes] = await Promise.all([
+          fetch(q ? `/api/jobs?q=${encodeURIComponent(q)}` : '/api/jobs'),
+          q ? fetch('/api/jobs') : Promise.resolve(null),
+        ]);
+
+        const filteredJobs = await filteredRes.json();
+        if (!filteredRes.ok) throw new Error(filteredJobs.error || 'Failed to load jobs.');
+
+        const allJobs = allRes ? await allRes.json() : filteredJobs;
+        renderStudentJobs(filteredJobs);
+        renderAllJobsDropdownAndRecruiterList(allJobs);
+      } catch (err) {
+        showBanner(studentJobsAlert, err.message, 'error');
+      }
+    }
+
+    async function loadApplications() {
+      try {
+        const res = await fetch('/api/applications');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load applications.');
+
+        appsCountBadge.textContent = data.length;
+        recruiterAppsSummary.textContent = `${data.length} application(s)`;
+
+        if (data.length === 0) {
+          applicationsTableBody.innerHTML = '';
+          applicationsEmpty.classList.remove('hidden');
+          return;
+        }
+
+        applicationsEmpty.classList.add('hidden');
+        applicationsTableBody.innerHTML = data
+          .map((app) => `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 whitespace-nowrap">
+                <p class="font-medium text-slate-900">${escapeHtml(app.studentName)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(app.studentEmail)}</p>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <p class="text-slate-800">${escapeHtml(app.branch)}</p>
+                <p class="text-xs text-slate-500">CGPA: ${escapeHtml(app.cgpa)}</p>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <p class="font-medium text-slate-900">${escapeHtml(app.job?.title || 'Removed Job')}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(app.job?.company || '')} ${app.job?.location ? '• ' + escapeHtml(app.job.location) : ''}</p>
+              </td>
+              <td class="px-4 py-3 text-slate-600 max-w-xs">${escapeHtml(app.coverNote || '—')}</td>
+            </tr>
+          `)
+          .join('');
+      } catch (err) {
+        showBanner(recruiterJobsAlert, err.message, 'error');
+      }
+    }
+
+    tabStudent.addEventListener('click', () => switchView('student'));
+    tabRecruiter.addEventListener('click', () => {
+      switchView('recruiter');
+      loadApplications();
+    });
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadJobs, 150);
+    });
+
+    jobsGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-apply-job-id]');
+      if (!btn) return;
+      hideBanner(applyAlert);
+      applyJobSelect.value = btn.dataset.applyJobId;
+      studentNameInput.focus();
+    });
+
+    applyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(applyAlert);
+
+      const jobId = applyJobSelect.value;
+      const payload = {
+        studentName: studentNameInput.value.trim(),
+        studentEmail: studentEmailInput.value.trim(),
+        branch: branchInput.value.trim(),
+        cgpa: Number(cgpaInput.value),
+        coverNote: coverNoteInput.value.trim(),
+      };
+
+      if (!jobId || !payload.studentName || !payload.studentEmail || !payload.branch || cgpaInput.value.trim() === '') {
+        showBanner(applyAlert, 'Role, Student Name, Email, Branch, and CGPA are required.', 'error');
+        return;
+      }
+
+      applySubmitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/apply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not submit application.');
+
+        applyForm.reset();
+        showBanner(applyAlert, 'Application submitted successfully!', 'success');
+        await Promise.all([loadJobs(), loadApplications()]);
+      } catch (err) {
+        showBanner(applyAlert, err.message, 'error');
+      } finally {
+        applySubmitBtn.disabled = false;
+      }
+    });
+
+    postJobForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(postJobAlert);
+
+      const payload = {
+        title: document.getElementById('jobTitle').value.trim(),
+        company: document.getElementById('company').value.trim(),
+        location: document.getElementById('location').value.trim(),
+        jobType: document.getElementById('jobType').value,
+        salary: document.getElementById('salary').value.trim(),
+        description: document.getElementById('description').value.trim(),
+      };
+
+      if (!payload.title || !payload.company || !payload.location || !payload.salary || !payload.description) {
+        showBanner(postJobAlert, 'All job posting fields are required.', 'error');
+        return;
+      }
+
+      postJobBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to post job.');
+
+        postJobForm.reset();
+        showBanner(postJobAlert, `Job "${data.title}" published!`, 'success');
+        await loadJobs();
+      } catch (err) {
+        showBanner(postJobAlert, err.message, 'error');
+      } finally {
+        postJobBtn.disabled = false;
+      }
+    });
+
+    recruiterJobsList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-delete-job]');
+      if (!btn) return;
+      if (!confirm('Delete this job and its applications?')) return;
+
+      hideBanner(recruiterJobsAlert);
+      try {
+        const res = await fetch(`/api/jobs/${encodeURIComponent(btn.dataset.deleteJob)}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete job.');
+
+        showBanner(recruiterJobsAlert, 'Job removed.', 'success');
+        await Promise.all([loadJobs(), loadApplications()]);
+      } catch (err) {
+        showBanner(recruiterJobsAlert, err.message, 'error');
+      }
+    });
+
+    Promise.all([loadJobs(), loadApplications()]);
+  </script>
+</body>
+</html>
