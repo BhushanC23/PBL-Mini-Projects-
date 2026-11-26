@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online MCQ Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Full-Stack Online Quiz</h1>
+        <p class="text-sm text-slate-500">10 MCQs &bull; 2-minute countdown timer &bull; Server-side grading</p>
+      </div>
+      <div id="timerPill" class="hidden px-3.5 py-1.5 rounded-full text-sm font-semibold border bg-indigo-50 text-indigo-700 border-indigo-200 self-start sm:self-auto">
+        Time Left: <span id="timerDisplay">02:00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div id="globalAlert" class="hidden rounded-lg px-4 py-3 text-sm border" role="alert"></div>
+
+    <!-- START SCREEN -->
+    <section id="startCard" class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-slate-900 mb-1">Start New Attempt</h2>
+      <p class="text-sm text-slate-500 mb-4">
+        Questions are fetched from MongoDB and displayed one at a time. When the timer hits 00:00, your quiz submits automatically.
+      </p>
+
+      <form id="startForm" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end" novalidate>
+        <div class="flex-1">
+          <label for="studentName" class="block text-sm font-medium text-slate-700 mb-1">Your Name</label>
+          <input
+            type="text"
+            id="studentName"
+            placeholder="e.g. Rohan Kulkarni"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <button
+          type="submit"
+          id="startBtn"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Start Quiz (10 MCQs)
+        </button>
+      </form>
+    </section>
+
+    <!-- QUIZ QUESTION CARD (ONE AT A TIME) -->
+    <section id="quizCard" class="hidden bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2">
+          <span id="questionCounter" class="text-sm font-semibold text-slate-900">Question 1 of 10</span>
+          <span id="questionTopic" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Topic</span>
+        </div>
+        <span id="answeredCounter" class="text-xs text-slate-500">0 / 10 answered</span>
+      </div>
+
+      <!-- Question Number Dots -->
+      <div id="questionNav" class="flex flex-wrap gap-1.5"></div>
+
+      <div>
+        <h2 id="questionText" class="text-base sm:text-lg font-semibold text-slate-900 leading-snug"></h2>
+      </div>
+
+      <div id="optionsContainer" class="space-y-2.5"></div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          id="prevBtn"
+          class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium cursor-pointer"
+        >
+          Previous
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            id="nextBtn"
+            class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium cursor-pointer"
+          >
+            Next
+          </button>
+          <button
+            type="button"
+            id="submitQuizBtn"
+            class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium cursor-pointer"
+          >
+            Submit Quiz
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL SCORE & ANSWER REVIEW CARD -->
+    <section id="resultCard" class="hidden bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Quiz Result</h2>
+          <p id="resultStudentMeta" class="text-sm text-slate-500"></p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <p id="finalScoreText" class="text-2xl font-bold text-indigo-600">0 / 10</p>
+            <p id="finalPercentText" class="text-xs text-slate-500">0%</p>
+          </div>
+          <span id="finalPassBadge" class="px-3 py-1 rounded-full text-xs font-semibold border"></span>
+        </div>
+      </div>
+
+      <div id="breakdownList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+
+      <div class="pt-2">
+        <button
+          type="button"
+          id="retakeBtn"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Take Another Attempt
+        </button>
+      </div>
+    </section>
+
+    <!-- PAST ATTEMPTS TABLE -->
+    <section id="historyCard" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Past Attempts (Saved in MongoDB)</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Recent quiz submissions and scores</p>
+        </div>
+        <span id="attemptsCount" class="text-xs font-medium text-slate-500">0 attempts</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-4 py-3">Student</th>
+              <th class="px-4 py-3">Score</th>
+              <th class="px-4 py-3">Percentage</th>
+              <th class="px-4 py-3">Time Taken</th>
+              <th class="px-4 py-3">Submitted At</th>
+            </tr>
+          </thead>
+          <tbody id="attemptsTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const QUIZ_DURATION_SECONDS = 120;
+
+    const globalAlert = document.getElementById('globalAlert');
+    const timerPill = document.getElementById('timerPill');
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    const startCard = document.getElementById('startCard');
+    const startForm = document.getElementById('startForm');
+    const studentNameInput = document.getElementById('studentName');
+    const startBtn = document.getElementById('startBtn');
+
+    const quizCard = document.getElementById('quizCard');
+    const questionCounter = document.getElementById('questionCounter');
+    const questionTopic = document.getElementById('questionTopic');
+    const answeredCounter = document.getElementById('answeredCounter');
+    const questionNav = document.getElementById('questionNav');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitQuizBtn = document.getElementById('submitQuizBtn');
+
+    const resultCard = document.getElementById('resultCard');
+    const resultStudentMeta = document.getElementById('resultStudentMeta');
+    const finalScoreText = document.getElementById('finalScoreText');
+    const finalPercentText = document.getElementById('finalPercentText');
+    const finalPassBadge = document.getElementById('finalPassBadge');
+    const breakdownList = document.getElementById('breakdownList');
+    const retakeBtn = document.getElementById('retakeBtn');
+
+    const attemptsCount = document.getElementById('attemptsCount');
+    const attemptsTableBody = document.getElementById('attemptsTableBody');
+
+    let questions = [];
+    let currentIndex = 0;
+    let answers = {};
+    let currentStudent = '';
+    let secondsRemaining = QUIZ_DURATION_SECONDS;
+    let timerHandle = null;
+    let submitting = false;
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showAlert(message, type = 'error') {
+      globalAlert.textContent = message;
+      globalAlert.className = 'rounded-lg px-4 py-3 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideAlert() {
+      globalAlert.classList.add('hidden');
+      globalAlert.textContent = '';
+    }
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateTimerUi() {
+      timerDisplay.textContent = formatTime(secondsRemaining);
+      if (secondsRemaining <= 20) {
+        timerPill.className = 'px-3.5 py-1.5 rounded-full text-sm font-semibold border bg-rose-50 text-rose-700 border-rose-200 self-start sm:self-auto';
+      } else {
+        timerPill.className = 'px-3.5 py-1.5 rounded-full text-sm font-semibold border bg-indigo-50 text-indigo-700 border-indigo-200 self-start sm:self-auto';
+      }
+    }
+
+    function stopTimer() {
+      if (timerHandle) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      secondsRemaining = QUIZ_DURATION_SECONDS;
+      timerPill.classList.remove('hidden');
+      updateTimerUi();
+
+      timerHandle = setInterval(() => {
+        secondsRemaining -= 1;
+        updateTimerUi();
+        if (secondsRemaining <= 0) {
+          stopTimer();
+          submitQuiz(true);
+        }
+      }, 1000);
+    }
+
+    function renderQuestion() {
+      const q = questions[currentIndex];
+      const answeredCount = Object.keys(answers).length;
+
+      questionCounter.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+      questionTopic.textContent = q.topic;
+      answeredCounter.textContent = `${answeredCount} / ${questions.length} answered`;
+      questionText.textContent = `${q.order}. ${q.question}`;
+
+      questionNav.innerHTML = questions
+        .map((item, idx) => {
+          const isCurrent = idx === currentIndex;
+          const isAnswered = answers[item._id] !== undefined;
+          let cls = 'w-8 h-8 rounded-lg text-xs font-semibold border cursor-pointer ';
+          if (isCurrent) {
+            cls += 'bg-indigo-600 text-white border-indigo-600';
+          } else if (isAnswered) {
+            cls += 'bg-indigo-50 text-indigo-700 border-indigo-200';
+          } else {
+            cls += 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
+          }
+          return `<button type="button" data-jump-idx="${idx}" class="${cls}">${idx + 1}</button>`;
+        })
+        .join('');
+
+      const letters = ['A', 'B', 'C', 'D'];
+      const selected = answers[q._id];
+
+      optionsContainer.innerHTML = q.options
+        .map((opt, idx) => {
+          const isPicked = selected === idx;
+          const cardCls = isPicked
+            ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
+            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800';
+
+          return `
+            <label class="flex items-center gap-3 p-3.5 rounded-xl border ${cardCls} cursor-pointer transition-colors">
+              <input
+                type="radio"
+                name="mcqOption"
+                value="${idx}"
+                ${isPicked ? 'checked' : ''}
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+              />
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${letters[idx]}</span>
+              <span class="text-sm font-medium">${escapeHtml(opt)}</span>
+            </label>
+          `;
+        })
+        .join('');
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.classList.toggle('hidden', currentIndex === questions.length - 1);
+    }
+
+    async function loadResults() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load past attempts.');
+
+        attemptsCount.textContent = `${data.length} attempt(s)`;
+        if (data.length === 0) {
+          attemptsTableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No attempts recorded yet.</td></tr>';
+          return;
+        }
+
+        attemptsTableBody.innerHTML = data
+          .map((row) => {
+            const passed = row.percentage >= 40;
+            const pctCls = passed ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200';
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${escapeHtml(row.studentName)}</td>
+                <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">${escapeHtml(row.score)} / ${escapeHtml(row.totalQuestions)}</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold border ${pctCls}">
+                    ${escapeHtml(row.percentage)}%
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(row.timeTakenSeconds)}s${row.timedOut ? ' (Auto)' : ''}</td>
+                <td class="px-4 py-3 text-slate-500 whitespace-nowrap">${escapeHtml(new Date(row.createdAt).toLocaleString())}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    async function submitQuiz(timedOut = false) {
+      if (submitting) return;
+      submitting = true;
+      stopTimer();
+      timerPill.classList.add('hidden');
+
+      const timeTakenSeconds = QUIZ_DURATION_SECONDS - Math.max(0, secondsRemaining);
+
+      try {
+        const res = await fetch('/api/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: currentStudent,
+            answers,
+            timeTakenSeconds,
+            timedOut,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to submit quiz.');
+
+        const { result, breakdown } = data;
+        quizCard.classList.add('hidden');
+        resultCard.classList.remove('hidden');
+
+        resultStudentMeta.textContent = `${result.studentName} • Completed in ${result.timeTakenSeconds}s${result.timedOut ? ' (Time Expired)' : ''}`;
+        finalScoreText.textContent = `${result.score} / ${result.totalQuestions}`;
+        finalPercentText.textContent = `${result.percentage}%`;
+
+        const passed = result.percentage >= 40;
+        finalPassBadge.textContent = passed ? 'Pass' : 'Fail';
+        finalPassBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold border ' + (
+          passed
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : 'bg-rose-50 text-rose-700 border-rose-200'
+        );
+
+        breakdownList.innerHTML = breakdown
+          .map((item) => {
+            const yourAnswer = item.selectedIndex === null ? 'Not answered' : item.options[item.selectedIndex];
+            const rightAnswer = item.options[item.correctIndex];
+            const boxCls = item.isCorrect
+              ? 'border-emerald-200 bg-emerald-50/50'
+              : 'border-rose-200 bg-rose-50/50';
+
+            return `
+              <div class="rounded-lg border p-3 text-sm ${boxCls}">
+                <p class="font-medium text-slate-900">${item.order}. ${escapeHtml(item.question)}</p>
+                <p class="text-xs mt-1 text-slate-700">
+                  Your answer: <strong>${escapeHtml(yourAnswer)}</strong>
+                  ${item.isCorrect ? '' : ` &bull; Correct: <strong class="text-emerald-700">${escapeHtml(rightAnswer)}</strong>`}
+                </p>
+              </div>
+            `;
+          })
+          .join('');
+
+        await loadResults();
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        submitting = false;
+      }
+    }
+
+    startForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const name = studentNameInput.value.trim();
+      if (!name) {
+        showAlert('Please enter your name before starting the quiz.', 'error');
+        return;
+      }
+
+      startBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/questions');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch quiz questions.');
+        if (data.length === 0) throw new Error('No quiz questions available.');
+
+        questions = data;
+        currentStudent = name;
+        currentIndex = 0;
+        answers = {};
+
+        startCard.classList.add('hidden');
+        resultCard.classList.add('hidden');
+        quizCard.classList.remove('hidden');
+
+        renderQuestion();
+        startTimer();
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        startBtn.disabled = false;
+      }
+    });
+
+    optionsContainer.addEventListener('change', (e) => {
+      if (e.target.name === 'mcqOption') {
+        const q = questions[currentIndex];
+        answers[q._id] = Number(e.target.value);
+        renderQuestion();
+      }
+    });
+
+    questionNav.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-jump-idx]');
+      if (!btn) return;
+      currentIndex = Number(btn.dataset.jumpIdx);
+      renderQuestion();
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < questions.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      }
+    });
+
+    submitQuizBtn.addEventListener('click', () => {
+      submitQuiz(false);
+    });
+
+    retakeBtn.addEventListener('click', () => {
+      hideAlert();
+      resultCard.classList.add('hidden');
+      startCard.classList.remove('hidden');
+      studentNameInput.focus();
+    });
+
+    loadResults();
+  </script>
+</body>
+</html>
