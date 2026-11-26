@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Library Management System</h1>
+        <p class="text-sm text-slate-500">Add books, issue to members, prevent double-issue, and process returns</p>
+      </div>
+      <div class="flex items-center gap-2.5 text-sm">
+        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">
+          Total: <strong id="totalBooks">0</strong>
+        </span>
+        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
+          Available: <strong id="availableBooks">0</strong>
+        </span>
+        <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 font-medium border border-amber-200">
+          Issued: <strong id="issuedBooksCount">0</strong>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Add Book & Issue Book Forms -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Add Book Card -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-3">Add New Book</h2>
+        <div id="addAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="addBookForm" class="space-y-3" novalidate>
+          <div>
+            <label for="isbn" class="block text-sm font-medium text-slate-700 mb-1">ISBN / Book Code</label>
+            <input
+              type="text"
+              id="isbn"
+              placeholder="e.g. LIB-106"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="title" class="block text-sm font-medium text-slate-700 mb-1">Book Title</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="e.g. Design Patterns"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="author" class="block text-sm font-medium text-slate-700 mb-1">Author</label>
+              <input
+                type="text"
+                id="author"
+                placeholder="e.g. Erich Gamma"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <input
+                type="text"
+                id="category"
+                placeholder="e.g. Software"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="addBookBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Add Book
+          </button>
+        </form>
+      </section>
+
+      <!-- Issue Book Card -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Issue Book to Member</h2>
+        <p class="text-xs text-slate-500 mb-3">Already-issued books are strictly blocked by the API.</p>
+        <div id="issueAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="issueBookForm" class="space-y-3" novalidate>
+          <div>
+            <label for="issueBookSelect" class="block text-sm font-medium text-slate-700 mb-1">Select Book</label>
+            <select
+              id="issueBookSelect"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></select>
+          </div>
+
+          <div>
+            <label for="memberName" class="block text-sm font-medium text-slate-700 mb-1">Member Name</label>
+            <input
+              type="text"
+              id="memberName"
+              placeholder="e.g. Rohan Kulkarni"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="memberId" class="block text-sm font-medium text-slate-700 mb-1">Member ID</label>
+            <input
+              type="text"
+              id="memberId"
+              placeholder="e.g. MEM-305"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="issueBookBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Issue Book
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Right Column: Currently Issued Books + Full Book Inventory -->
+    <div class="lg:col-span-8 space-y-6">
+      <!-- Currently Issued Books Section -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Currently Issued Books</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Active loans awaiting return</p>
+          </div>
+          <span id="issuedBadge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            0 issued
+          </span>
+        </div>
+
+        <div id="returnAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">ISBN</th>
+                <th class="px-4 py-3">Title</th>
+                <th class="px-4 py-3">Issued To</th>
+                <th class="px-4 py-3">Issued Date</th>
+                <th class="px-4 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="issuedTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="issuedEmpty" class="hidden py-8 px-4 text-center text-sm text-slate-500">
+          All books are currently available in the library.
+        </div>
+      </section>
+
+      <!-- All Library Books Section -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">All Library Books</h2>
+            <p id="catalogSummary" class="text-xs text-slate-500 mt-0.5">Loading catalogue...</p>
+          </div>
+          <input
+            type="search"
+            id="searchInput"
+            placeholder="Search ISBN, title, author, member..."
+            class="w-full sm:w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">ISBN</th>
+                <th class="px-4 py-3">Book</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allBooksTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="allBooksEmpty" class="hidden py-8 px-4 text-center text-sm text-slate-500">
+          No books match your search.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const totalBooksEl = document.getElementById('totalBooks');
+    const availableBooksEl = document.getElementById('availableBooks');
+    const issuedBooksCountEl = document.getElementById('issuedBooksCount');
+
+    const addBookForm = document.getElementById('addBookForm');
+    const addAlert = document.getElementById('addAlert');
+    const addBookBtn = document.getElementById('addBookBtn');
+
+    const issueBookForm = document.getElementById('issueBookForm');
+    const issueBookSelect = document.getElementById('issueBookSelect');
+    const memberNameInput = document.getElementById('memberName');
+    const memberIdInput = document.getElementById('memberId');
+    const issueAlert = document.getElementById('issueAlert');
+    const issueBookBtn = document.getElementById('issueBookBtn');
+
+    const issuedBadge = document.getElementById('issuedBadge');
+    const returnAlert = document.getElementById('returnAlert');
+    const issuedTableBody = document.getElementById('issuedTableBody');
+    const issuedEmpty = document.getElementById('issuedEmpty');
+
+    const searchInput = document.getElementById('searchInput');
+    const catalogSummary = document.getElementById('catalogSummary');
+    const allBooksTableBody = document.getElementById('allBooksTableBody');
+    const allBooksEmpty = document.getElementById('allBooksEmpty');
+
+    let allBooks = [];
+    let searchTimer = null;
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const margin = el === returnAlert ? 'mx-5 mt-4 ' : 'mb-3 ';
+      el.className = margin + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function renderIssueDropdown(books) {
+      const previousVal = issueBookSelect.value;
+
+      if (books.length === 0) {
+        issueBookSelect.innerHTML = '<option value="">No books available</option>';
+        return;
+      }
+
+      issueBookSelect.innerHTML = books
+        .map((b) => {
+          const statusLabel = b.status === 'Issued'
+            ? `Issued to ${b.issuedTo?.memberName || 'Member'}`
+            : 'Available';
+          return `<option value="${escapeHtml(b._id)}">${escapeHtml(b.isbn)} — ${escapeHtml(b.title)} [${escapeHtml(statusLabel)}]</option>`;
+        })
+        .join('');
+
+      if (previousVal && books.some((b) => b._id === previousVal)) {
+        issueBookSelect.value = previousVal;
+      }
+    }
+
+    function renderIssuedBooks(books) {
+      const issued = books.filter((b) => b.status === 'Issued');
+      issuedBadge.textContent = `${issued.length} issued`;
+
+      if (issued.length === 0) {
+        issuedTableBody.innerHTML = '';
+        issuedEmpty.classList.remove('hidden');
+        return;
+      }
+
+      issuedEmpty.classList.add('hidden');
+      issuedTableBody.innerHTML = issued
+        .map((book) => {
+          const dateText = book.issuedTo?.issuedAt
+            ? new Date(book.issuedTo.issuedAt).toLocaleDateString()
+            : '—';
+
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">${escapeHtml(book.isbn)}</td>
+              <td class="px-4 py-3">
+                <p class="font-medium text-slate-900">${escapeHtml(book.title)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(book.author)}</p>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <p class="font-medium text-slate-800">${escapeHtml(book.issuedTo?.memberName)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(book.issuedTo?.memberId)}</p>
+              </td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(dateText)}</td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <button
+                  type="button"
+                  data-return-id="${escapeHtml(book._id)}"
+                  class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                >
+                  Mark Returned
+                </button>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    function renderAllBooks(filteredBooks) {
+      catalogSummary.textContent = `Showing ${filteredBooks.length} book(s)`;
+
+      if (filteredBooks.length === 0) {
+        allBooksTableBody.innerHTML = '';
+        allBooksEmpty.classList.remove('hidden');
+        return;
+      }
+
+      allBooksEmpty.classList.add('hidden');
+      allBooksTableBody.innerHTML = filteredBooks
+        .map((book) => {
+          const isIssued = book.status === 'Issued';
+          const statusBadge = isIssued
+            ? `<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Issued</span>`
+            : `<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Available</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">${escapeHtml(book.isbn)}</td>
+              <td class="px-4 py-3">
+                <p class="font-medium text-slate-900">${escapeHtml(book.title)}</p>
+                <p class="text-xs text-slate-500">${escapeHtml(book.author)}</p>
+              </td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(book.category)}</td>
+              <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadge}</td>
+              <td class="px-4 py-3 text-right whitespace-nowrap space-x-2">
+                ${
+                  isIssued
+                    ? `<button type="button" data-return-id="${escapeHtml(book._id)}" class="text-indigo-600 hover:text-indigo-800 font-medium text-xs px-2.5 py-1 rounded-md border border-indigo-200 hover:bg-indigo-50 cursor-pointer">Return</button>`
+                    : `<button type="button" data-pick-issue="${escapeHtml(book._id)}" class="text-indigo-600 hover:text-indigo-800 font-medium text-xs px-2.5 py-1 rounded-md border border-indigo-200 hover:bg-indigo-50 cursor-pointer">Issue</button>`
+                }
+                <button
+                  type="button"
+                  data-delete-id="${escapeHtml(book._id)}"
+                  class="text-rose-600 hover:text-rose-800 font-medium text-xs px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadLibrary() {
+      try {
+        const resAll = await fetch('/api/books');
+        const fullData = await resAll.json();
+        if (!resAll.ok) throw new Error(fullData.error || 'Failed to load books.');
+
+        allBooks = fullData;
+        const issuedCount = allBooks.filter((b) => b.status === 'Issued').length;
+        totalBooksEl.textContent = allBooks.length;
+        issuedBooksCountEl.textContent = issuedCount;
+        availableBooksEl.textContent = allBooks.length - issuedCount;
+
+        renderIssueDropdown(allBooks);
+        renderIssuedBooks(allBooks);
+
+        const q = searchInput.value.trim();
+        if (q) {
+          const resSearch = await fetch(`/api/books?q=${encodeURIComponent(q)}`);
+          const filtered = await resSearch.json();
+          if (!resSearch.ok) throw new Error(filtered.error || 'Search failed.');
+          renderAllBooks(filtered);
+        } else {
+          renderAllBooks(allBooks);
+        }
+      } catch (err) {
+        showBanner(returnAlert, err.message, 'error');
+      }
+    }
+
+    addBookForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(addAlert);
+
+      const payload = {
+        isbn: document.getElementById('isbn').value.trim(),
+        title: document.getElementById('title').value.trim(),
+        author: document.getElementById('author').value.trim(),
+        category: document.getElementById('category').value.trim(),
+      };
+
+      if (!payload.isbn || !payload.title || !payload.author || !payload.category) {
+        showBanner(addAlert, 'All book fields (ISBN, Title, Author, Category) are required.', 'error');
+        return;
+      }
+
+      addBookBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not add book.');
+
+        addBookForm.reset();
+        showBanner(addAlert, `Added "${data.title}" (${data.isbn}).`, 'success');
+        await loadLibrary();
+      } catch (err) {
+        showBanner(addAlert, err.message, 'error');
+      } finally {
+        addBookBtn.disabled = false;
+      }
+    });
+
+    issueBookForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(issueAlert);
+
+      const bookId = issueBookSelect.value;
+      const memberName = memberNameInput.value.trim();
+      const memberId = memberIdInput.value.trim();
+
+      if (!bookId) {
+        showBanner(issueAlert, 'Please select a book to issue.', 'error');
+        return;
+      }
+
+      if (!memberName || !memberId) {
+        showBanner(issueAlert, 'Member Name and Member ID are required.', 'error');
+        return;
+      }
+
+      issueBookBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/books/${encodeURIComponent(bookId)}/issue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberName, memberId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not issue book.');
+
+        memberNameInput.value = '';
+        memberIdInput.value = '';
+        showBanner(issueAlert, `Issued "${data.title}" to ${data.issuedTo.memberName} (${data.issuedTo.memberId}).`, 'success');
+        await loadLibrary();
+      } catch (err) {
+        showBanner(issueAlert, err.message, 'error');
+      } finally {
+        issueBookBtn.disabled = false;
+      }
+    });
+
+    async function handleReturn(bookId) {
+      hideBanner(returnAlert);
+      try {
+        const res = await fetch(`/api/books/${encodeURIComponent(bookId)}/return`, {
+          method: 'POST',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not return book.');
+
+        showBanner(returnAlert, `Returned "${data.title}" (${data.isbn}) to library stock.`, 'success');
+        await loadLibrary();
+      } catch (err) {
+        showBanner(returnAlert, err.message, 'error');
+      }
+    }
+
+    issuedTableBody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-return-id]');
+      if (btn) handleReturn(btn.dataset.returnId);
+    });
+
+    allBooksTableBody.addEventListener('click', async (e) => {
+      const returnBtn = e.target.closest('button[data-return-id]');
+      if (returnBtn) {
+        handleReturn(returnBtn.dataset.returnId);
+        return;
+      }
+
+      const pickBtn = e.target.closest('button[data-pick-issue]');
+      if (pickBtn) {
+        hideBanner(issueAlert);
+        issueBookSelect.value = pickBtn.dataset.pickIssue;
+        memberNameInput.focus();
+        return;
+      }
+
+      const delBtn = e.target.closest('button[data-delete-id]');
+      if (delBtn) {
+        hideBanner(returnAlert);
+        const book = allBooks.find((b) => b._id === delBtn.dataset.deleteId);
+        if (!book || !confirm(`Delete "${book.title}" (${book.isbn})?`)) return;
+
+        try {
+          const res = await fetch(`/api/books/${encodeURIComponent(book._id)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not delete book.');
+
+          showBanner(returnAlert, `Deleted "${book.title}".`, 'success');
+          await loadLibrary();
+        } catch (err) {
+          showBanner(returnAlert, err.message, 'error');
+        }
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadLibrary, 150);
+    });
+
+    loadLibrary();
+  </script>
+</body>
+</html>
