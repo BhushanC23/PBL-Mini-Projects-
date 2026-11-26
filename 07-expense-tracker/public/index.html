@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Income & Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Income &amp; Expense Tracker</h1>
+        <p class="text-sm text-slate-500">Track monthly income, expenses, and net balance by category &amp; date</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <label for="monthFilter" class="text-xs font-medium text-slate-600">Month:</label>
+        <input
+          type="month"
+          id="monthFilter"
+          class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <!-- Monthly Summary Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Monthly Income</p>
+        <p id="totalIncomeCard" class="text-2xl font-bold text-emerald-600 mt-1">&#8377;0.00</p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Monthly Expense</p>
+        <p id="totalExpenseCard" class="text-2xl font-bold text-rose-600 mt-1">&#8377;0.00</p>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Net Balance</p>
+        <p id="netBalanceCard" class="text-2xl font-bold text-indigo-600 mt-1">&#8377;0.00</p>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Add / Edit Entry Form -->
+      <section class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="formTitle" class="text-base font-semibold text-slate-900">Add Entry</h2>
+          <span id="editBadge" class="hidden text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Editing Mode
+          </span>
+        </div>
+
+        <div id="formAlert" class="hidden mb-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="entryForm" class="space-y-3.5" novalidate>
+          <input type="hidden" id="entryId" />
+
+          <div>
+            <label for="title" class="block text-sm font-medium text-slate-700 mb-1">Description / Title</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="e.g. Lab Manual & Stationery"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="type" class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+              <select
+                id="type"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="amount" class="block text-sm font-medium text-slate-700 mb-1">Amount (&#8377;)</label>
+              <input
+                type="number"
+                id="amount"
+                min="0.01"
+                step="0.01"
+                placeholder="e.g. 500"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <select
+                id="category"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              ></select>
+            </div>
+
+            <div>
+              <label for="date" class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+              <input
+                type="date"
+                id="date"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="pt-1 flex items-center gap-2">
+            <button
+              type="submit"
+              id="submitBtn"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+            >
+              Add Entry
+            </button>
+            <button
+              type="button"
+              id="cancelEditBtn"
+              class="hidden px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium text-sm transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Entries Table with Category Filter -->
+      <section class="lg:col-span-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Transactions</h2>
+            <p id="listSummary" class="text-xs text-slate-500 mt-0.5">Loading entries...</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="categoryFilter" class="text-xs font-medium text-slate-600">Category:</label>
+            <select
+              id="categoryFilter"
+              class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="All">All Categories</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tableAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">Date</th>
+                <th class="px-4 py-3">Title</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3 text-right">Amount</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="entriesTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden py-10 px-4 text-center text-sm text-slate-500">
+          No entries found for this month and category.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const monthFilter = document.getElementById('monthFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    const totalIncomeCard = document.getElementById('totalIncomeCard');
+    const totalExpenseCard = document.getElementById('totalExpenseCard');
+    const netBalanceCard = document.getElementById('netBalanceCard');
+
+    const entryForm = document.getElementById('entryForm');
+    const entryIdInput = document.getElementById('entryId');
+    const titleInput = document.getElementById('title');
+    const typeInput = document.getElementById('type');
+    const amountInput = document.getElementById('amount');
+    const categoryInput = document.getElementById('category');
+    const dateInput = document.getElementById('date');
+    const formTitle = document.getElementById('formTitle');
+    const editBadge = document.getElementById('editBadge');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const formAlert = document.getElementById('formAlert');
+
+    const tableAlert = document.getElementById('tableAlert');
+    const listSummary = document.getElementById('listSummary');
+    const entriesTableBody = document.getElementById('entriesTableBody');
+    const emptyState = document.getElementById('emptyState');
+
+    let currentEntries = [];
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function formatCurrency(val) {
+      return `\u20B9${Number(val || 0).toFixed(2)}`;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === tableAlert ? 'mx-5 mt-4 ' : 'mb-4 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function resetFormMode() {
+      entryForm.reset();
+      entryIdInput.value = '';
+      dateInput.value = new Date().toISOString().slice(0, 10);
+      formTitle.textContent = 'Add Entry';
+      submitBtn.textContent = 'Add Entry';
+      editBadge.classList.add('hidden');
+      cancelEditBtn.classList.add('hidden');
+    }
+
+    function enterEditMode(entry) {
+      hideBanner(formAlert);
+      entryIdInput.value = entry._id;
+      titleInput.value = entry.title;
+      typeInput.value = entry.type;
+      amountInput.value = entry.amount;
+      categoryInput.value = entry.category;
+      dateInput.value = entry.date;
+
+      formTitle.textContent = 'Update Entry';
+      submitBtn.textContent = 'Update Entry';
+      editBadge.classList.remove('hidden');
+      cancelEditBtn.classList.remove('hidden');
+      titleInput.focus();
+    }
+
+    function renderSummary(summary) {
+      totalIncomeCard.textContent = formatCurrency(summary.totalIncome);
+      totalExpenseCard.textContent = formatCurrency(summary.totalExpense);
+      netBalanceCard.textContent = formatCurrency(summary.netBalance);
+      netBalanceCard.className = 'text-2xl font-bold mt-1 ' + (
+        summary.netBalance >= 0 ? 'text-indigo-600' : 'text-rose-600'
+      );
+    }
+
+    function renderTable(entries, summary) {
+      const catText = categoryFilter.value === 'All' ? 'All Categories' : categoryFilter.value;
+      listSummary.textContent = `${entries.length} entry/entries in ${summary.month} (${catText})`;
+
+      if (entries.length === 0) {
+        entriesTableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      entriesTableBody.innerHTML = entries
+        .map((entry) => {
+          const isIncome = entry.type === 'income';
+          const typeBadge = isIncome
+            ? '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Income</span>'
+            : '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Expense</span>';
+          const amountClass = isIncome ? 'text-emerald-700' : 'text-rose-700';
+          const sign = isIncome ? '+' : '-';
+
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(entry.date)}</td>
+              <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${escapeHtml(entry.title)}</td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(entry.category)}</td>
+              <td class="px-4 py-3 whitespace-nowrap">${typeBadge}</td>
+              <td class="px-4 py-3 text-right font-semibold whitespace-nowrap ${amountClass}">${sign}${formatCurrency(entry.amount)}</td>
+              <td class="px-4 py-3 text-right whitespace-nowrap space-x-2">
+                <button
+                  type="button"
+                  data-action="edit"
+                  data-id="${escapeHtml(entry._id)}"
+                  class="text-indigo-600 hover:text-indigo-800 font-medium text-xs px-2.5 py-1 rounded-md border border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  data-action="delete"
+                  data-id="${escapeHtml(entry._id)}"
+                  class="text-rose-600 hover:text-rose-800 font-medium text-xs px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadMeta() {
+      const res = await fetch('/api/meta');
+      const data = await res.json();
+
+      monthFilter.value = data.currentMonth;
+      dateInput.value = new Date().toISOString().slice(0, 10);
+
+      categoryInput.innerHTML = data.categories
+        .map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+        .join('');
+
+      categoryFilter.innerHTML = '<option value="All">All Categories</option>' +
+        data.categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    }
+
+    async function loadTransactions() {
+      try {
+        hideBanner(tableAlert);
+        const params = new URLSearchParams();
+        if (monthFilter.value) params.set('month', monthFilter.value);
+        if (categoryFilter.value) params.set('category', categoryFilter.value);
+
+        const res = await fetch(`/api/transactions?${params.toString()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load entries.');
+
+        currentEntries = data.transactions;
+        renderSummary(data.summary);
+        renderTable(currentEntries, data.summary);
+      } catch (err) {
+        showBanner(tableAlert, err.message, 'error');
+      }
+    }
+
+    entryForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(formAlert);
+
+      const id = entryIdInput.value;
+      const payload = {
+        title: titleInput.value.trim(),
+        type: typeInput.value,
+        amount: Number(amountInput.value),
+        category: categoryInput.value,
+        date: dateInput.value,
+      };
+
+      if (!payload.title || !payload.date || Number.isNaN(payload.amount) || payload.amount <= 0) {
+        showBanner(formAlert, 'Please enter a valid title, positive amount, category, and date.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(id ? `/api/transactions/${encodeURIComponent(id)}` : '/api/transactions', {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not save entry.');
+
+        monthFilter.value = payload.date.slice(0, 7);
+        resetFormMode();
+        showBanner(formAlert, id ? 'Entry updated successfully.' : 'Entry added successfully.', 'success');
+        await loadTransactions();
+      } catch (err) {
+        showBanner(formAlert, err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      resetFormMode();
+      hideBanner(formAlert);
+    });
+
+    entriesTableBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+
+      const { action, id } = btn.dataset;
+      const entry = currentEntries.find((item) => item._id === id);
+      if (!entry) return;
+
+      if (action === 'edit') {
+        enterEditMode(entry);
+        return;
+      }
+
+      if (action === 'delete') {
+        if (!confirm(`Delete "${entry.title}"?`)) return;
+        hideBanner(tableAlert);
+
+        try {
+          const res = await fetch(`/api/transactions/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to delete entry.');
+
+          if (entryIdInput.value === id) resetFormMode();
+          showBanner(tableAlert, 'Entry deleted.', 'success');
+          await loadTransactions();
+        } catch (err) {
+          showBanner(tableAlert, err.message, 'error');
+        }
+      }
+    });
+
+    monthFilter.addEventListener('change', loadTransactions);
+    categoryFilter.addEventListener('change', loadTransactions);
+
+    async function init() {
+      await loadMeta();
+      await loadTransactions();
+    }
+
+    init();
+  </script>
+</body>
+</html>
