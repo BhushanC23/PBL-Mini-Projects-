@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Placement Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Campus Placement Portal</h1>
+        <p class="text-sm text-slate-500">Student profile registration, active company drives, and Admin selection tracking</p>
+      </div>
+
+      <nav class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto" aria-label="Views">
+        <button
+          type="button"
+          id="tabStudent"
+          class="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer"
+        >
+          Student Portal
+        </button>
+        <button
+          type="button"
+          id="tabAdmin"
+          class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
+        >
+          Admin View
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <!-- STUDENT PORTAL VIEW -->
+    <div id="studentView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Left: Student Registration & Active Profile Selector -->
+      <div class="lg:col-span-4 space-y-6">
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+          <h2 class="text-base font-semibold text-slate-900 mb-1">Active Student Profile</h2>
+          <p class="text-xs text-slate-500 mb-3">Select a registered student to apply for drives.</p>
+
+          <select
+            id="activeStudentSelect"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          ></select>
+
+          <div id="selectedProfileCard" class="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs space-y-1 text-slate-600"></div>
+        </section>
+
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+          <h2 class="text-base font-semibold text-slate-900 mb-1">Register New Student</h2>
+          <p class="text-xs text-slate-500 mb-3">Create a student profile for campus placements.</p>
+
+          <div id="studentFormAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+          <form id="studentForm" class="space-y-3" novalidate>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="rollNo" class="block text-xs font-medium text-slate-700 mb-1">Roll No.</label>
+                <input
+                  type="text"
+                  id="rollNo"
+                  placeholder="e.g. CS105"
+                  required
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label for="branch" class="block text-xs font-medium text-slate-700 mb-1">Branch</label>
+                <input
+                  type="text"
+                  id="branch"
+                  placeholder="e.g. BE-CS"
+                  required
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="studentName" class="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                id="studentName"
+                placeholder="e.g. Ananya Deshmukh"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label for="studentEmail" class="block text-xs font-medium text-slate-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  id="studentEmail"
+                  placeholder="ananya@college.edu"
+                  required
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label for="cgpa" class="block text-xs font-medium text-slate-700 mb-1">CGPA</label>
+                <input
+                  type="number"
+                  id="cgpa"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  placeholder="8.5"
+                  required
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="skills" class="block text-xs font-medium text-slate-700 mb-1">Key Skills</label>
+              <input
+                type="text"
+                id="skills"
+                placeholder="e.g. JavaScript, Node.js, SQL"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              id="registerStudentBtn"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+            >
+              Register Profile
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Right: Company Drives + Student's Applications -->
+      <div class="lg:col-span-8 space-y-6">
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">Company Placement Drives</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Apply to active drives matching your CGPA eligibility</p>
+            </div>
+            <span id="drivesCountLabel" class="text-xs font-medium text-slate-500">Loading drives...</span>
+          </div>
+
+          <div id="driveApplyAlert" class="hidden rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+          <div id="drivesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-slate-900">My Drive Applications</h2>
+              <p id="myAppsSubtitle" class="text-xs text-slate-500 mt-0.5">Selection results for the active student</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <th class="px-4 py-3">Company</th>
+                  <th class="px-4 py-3">Role</th>
+                  <th class="px-4 py-3">Package</th>
+                  <th class="px-4 py-3 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody id="myAppsTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+            </table>
+          </div>
+          <div id="myAppsEmpty" class="hidden py-6 px-4 text-center text-sm text-slate-500">
+            This student has not applied to any drives yet.
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <div id="adminView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Post New Company Drive -->
+      <section class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Add Company Drive</h2>
+        <p class="text-xs text-slate-500 mb-3">Publish a new campus placement drive.</p>
+
+        <div id="addDriveAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="driveForm" class="space-y-3" novalidate>
+          <div>
+            <label for="companyName" class="block text-xs font-medium text-slate-700 mb-1">Company Name</label>
+            <input
+              type="text"
+              id="companyName"
+              placeholder="e.g. InnovateCloud"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="role" class="block text-xs font-medium text-slate-700 mb-1">Job Role</label>
+            <input
+              type="text"
+              id="role"
+              placeholder="e.g. Graduate Engineer Trainee"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="packageLpa" class="block text-xs font-medium text-slate-700 mb-1">Package</label>
+              <input
+                type="text"
+                id="packageLpa"
+                placeholder="e.g. 6.0 LPA"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="minCgpa" class="block text-xs font-medium text-slate-700 mb-1">Min CGPA</label>
+              <input
+                type="number"
+                id="minCgpa"
+                min="0"
+                max="10"
+                step="0.1"
+                value="7.0"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="location" class="block text-xs font-medium text-slate-700 mb-1">Location</label>
+              <input
+                type="text"
+                id="location"
+                placeholder="e.g. Pune"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label for="driveDate" class="block text-xs font-medium text-slate-700 mb-1">Drive Date</label>
+              <input
+                type="date"
+                id="driveDate"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="addDriveBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Publish Drive
+          </button>
+        </form>
+      </section>
+
+      <!-- Admin Applicants Per Drive -->
+      <section class="lg:col-span-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Drive Applicants &amp; Selection</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Select a drive to view applicants and mark Selected / Not Selected</p>
+          </div>
+
+          <select
+            id="adminDriveFilter"
+            class="w-full sm:w-72 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          ></select>
+        </div>
+
+        <div id="adminAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <div id="adminDriveBar" class="hidden px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+          <span id="adminDriveMeta" class="font-medium text-slate-700"></span>
+          <button
+            type="button"
+            id="toggleDriveStatusBtn"
+            class="px-2.5 py-1 rounded-md border border-slate-300 bg-white hover:bg-slate-100 font-medium text-slate-700 cursor-pointer"
+          ></button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3">Student</th>
+                <th class="px-4 py-3">Branch &amp; CGPA</th>
+                <th class="px-4 py-3">Drive</th>
+                <th class="px-4 py-3 text-center">Status</th>
+                <th class="px-4 py-3 text-right">Mark Result</th>
+              </tr>
+            </thead>
+            <tbody id="adminApplicantsBody" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="adminApplicantsEmpty" class="hidden py-10 px-4 text-center text-sm text-slate-500">
+          No applicants found for this drive.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const tabStudent = document.getElementById('tabStudent');
+    const tabAdmin = document.getElementById('tabAdmin');
+    const studentView = document.getElementById('studentView');
+    const adminView = document.getElementById('adminView');
+
+    const activeStudentSelect = document.getElementById('activeStudentSelect');
+    const selectedProfileCard = document.getElementById('selectedProfileCard');
+
+    const studentForm = document.getElementById('studentForm');
+    const studentFormAlert = document.getElementById('studentFormAlert');
+    const registerStudentBtn = document.getElementById('registerStudentBtn');
+
+    const drivesCountLabel = document.getElementById('drivesCountLabel');
+    const driveApplyAlert = document.getElementById('driveApplyAlert');
+    const drivesGrid = document.getElementById('drivesGrid');
+
+    const myAppsSubtitle = document.getElementById('myAppsSubtitle');
+    const myAppsTableBody = document.getElementById('myAppsTableBody');
+    const myAppsEmpty = document.getElementById('myAppsEmpty');
+
+    const driveForm = document.getElementById('driveForm');
+    const addDriveAlert = document.getElementById('addDriveAlert');
+    const addDriveBtn = document.getElementById('addDriveBtn');
+    const adminDriveFilter = document.getElementById('adminDriveFilter');
+    const adminAlert = document.getElementById('adminAlert');
+    const adminDriveBar = document.getElementById('adminDriveBar');
+    const adminDriveMeta = document.getElementById('adminDriveMeta');
+    const toggleDriveStatusBtn = document.getElementById('toggleDriveStatusBtn');
+    const adminApplicantsBody = document.getElementById('adminApplicantsBody');
+    const adminApplicantsEmpty = document.getElementById('adminApplicantsEmpty');
+
+    let studentsList = [];
+    let drivesList = [];
+    let allApplications = [];
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const margin = el === adminAlert ? 'mx-5 mt-4 ' : el === driveApplyAlert ? '' : 'mb-3 ';
+      el.className = margin + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function switchView(view) {
+      const isStudent = view === 'student';
+      studentView.classList.toggle('hidden', !isStudent);
+      adminView.classList.toggle('hidden', isStudent);
+
+      tabStudent.className = isStudent
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+      tabAdmin.className = !isStudent
+        ? 'px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+        : 'px-4 py-1.5 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 cursor-pointer';
+    }
+
+    function appStatusBadge(status) {
+      if (status === 'Selected') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Selected</span>';
+      }
+      if (status === 'Not Selected') {
+        return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Not Selected</span>';
+      }
+      return '<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Applied</span>';
+    }
+
+    function renderSelectedStudentProfile() {
+      const selectedId = activeStudentSelect.value;
+      const student = studentsList.find((s) => s._id === selectedId);
+      if (!student) {
+        selectedProfileCard.innerHTML = '<p class="text-slate-500">No student selected.</p>';
+        return;
+      }
+
+      selectedProfileCard.innerHTML = `
+        <p class="font-semibold text-slate-900">${escapeHtml(student.name)} (${escapeHtml(student.rollNo)})</p>
+        <p>${escapeHtml(student.branch)} &bull; CGPA: <strong class="text-indigo-700">${escapeHtml(student.cgpa)}</strong></p>
+        <p>${escapeHtml(student.email)}</p>
+        <p class="text-slate-500">Skills: ${escapeHtml(student.skills || 'Not specified')}</p>
+      `;
+    }
+
+    function renderDrives() {
+      drivesCountLabel.textContent = `${drivesList.length} drive(s)`;
+      const activeStudentId = activeStudentSelect.value;
+      const studentAppsByDrive = new Map(
+        allApplications
+          .filter((a) => a.student && a.student._id === activeStudentId && a.drive)
+          .map((a) => [a.drive._id, a.status])
+      );
+
+      drivesGrid.innerHTML = drivesList
+        .map((drive) => {
+          const isActive = drive.status === 'Active';
+          const appliedStatus = studentAppsByDrive.get(drive._id);
+          const statusBadge = isActive
+            ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">Closed</span>';
+
+          let actionHtml = '';
+          if (appliedStatus) {
+            actionHtml = appStatusBadge(appliedStatus);
+          } else {
+            actionHtml = `
+              <button
+                type="button"
+                data-apply-drive="${escapeHtml(drive._id)}"
+                ${!isActive ? 'disabled' : ''}
+                class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed text-white cursor-pointer"
+              >
+                ${isActive ? 'Apply Now' : 'Closed'}
+              </button>
+            `;
+          }
+
+          return `
+            <article class="border border-slate-200 rounded-xl p-4 flex flex-col justify-between gap-3 bg-slate-50/40">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wide text-indigo-700">${escapeHtml(drive.companyName)}</span>
+                  ${statusBadge}
+                </div>
+                <h3 class="text-sm font-bold text-slate-900">${escapeHtml(drive.role)}</h3>
+                <p class="text-xs text-slate-600">&#8377;${escapeHtml(drive.packageLpa)} &bull; ${escapeHtml(drive.location)}</p>
+                <p class="text-xs text-slate-500">Min CGPA: <strong>${escapeHtml(drive.minCgpa)}</strong> &bull; Date: ${escapeHtml(drive.driveDate)}</p>
+              </div>
+              <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                <span class="text-xs text-slate-500">${drive.applicantCount} applicant(s)</span>
+                ${actionHtml}
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    function renderMyApplications() {
+      const activeStudentId = activeStudentSelect.value;
+      const student = studentsList.find((s) => s._id === activeStudentId);
+      myAppsSubtitle.textContent = student
+        ? `Applications for ${student.name} (${student.rollNo})`
+        : 'Selection results';
+
+      const mine = allApplications.filter((a) => a.student && a.student._id === activeStudentId);
+      if (mine.length === 0) {
+        myAppsTableBody.innerHTML = '';
+        myAppsEmpty.classList.remove('hidden');
+        return;
+      }
+
+      myAppsEmpty.classList.add('hidden');
+      myAppsTableBody.innerHTML = mine
+        .map((app) => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${escapeHtml(app.drive?.companyName || '—')}</td>
+            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">${escapeHtml(app.drive?.role || '—')}</td>
+            <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(app.drive?.packageLpa || '—')}</td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">${appStatusBadge(app.status)}</td>
+          </tr>
+        `)
+        .join('');
+    }
+
+    function renderAdminApplicants() {
+      const selectedDriveId = adminDriveFilter.value;
+      const drive = drivesList.find((d) => d._id === selectedDriveId);
+
+      if (drive) {
+        adminDriveBar.classList.remove('hidden');
+        adminDriveMeta.textContent = `${drive.companyName} — ${drive.role} (${drive.status}, Min CGPA: ${drive.minCgpa})`;
+        toggleDriveStatusBtn.textContent = drive.status === 'Active' ? 'Close Drive' : 'Reopen Drive';
+        toggleDriveStatusBtn.dataset.driveId = drive._id;
+        toggleDriveStatusBtn.dataset.nextStatus = drive.status === 'Active' ? 'Closed' : 'Active';
+      } else {
+        adminDriveBar.classList.add('hidden');
+      }
+
+      const filteredApps = selectedDriveId === 'ALL'
+        ? allApplications
+        : allApplications.filter((a) => a.drive && a.drive._id === selectedDriveId);
+
+      if (filteredApps.length === 0) {
+        adminApplicantsBody.innerHTML = '';
+        adminApplicantsEmpty.classList.remove('hidden');
+        return;
+      }
+
+      adminApplicantsEmpty.classList.add('hidden');
+      adminApplicantsBody.innerHTML = filteredApps
+        .map((app) => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="font-medium text-slate-900">${escapeHtml(app.student?.name || '—')}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(app.student?.rollNo || '')} &bull; ${escapeHtml(app.student?.email || '')}</p>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="text-slate-800">${escapeHtml(app.student?.branch || '—')}</p>
+              <p class="text-xs text-slate-500">CGPA: ${escapeHtml(app.student?.cgpa ?? '—')}</p>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <p class="font-medium text-slate-900">${escapeHtml(app.drive?.companyName || '—')}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(app.drive?.role || '')}</p>
+            </td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">${appStatusBadge(app.status)}</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap space-x-1.5">
+              <button
+                type="button"
+                data-mark-id="${escapeHtml(app._id)}"
+                data-mark-status="Selected"
+                ${app.status === 'Selected' ? 'disabled' : ''}
+                class="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white cursor-pointer"
+              >
+                Selected
+              </button>
+              <button
+                type="button"
+                data-mark-id="${escapeHtml(app._id)}"
+                data-mark-status="Not Selected"
+                ${app.status === 'Not Selected' ? 'disabled' : ''}
+                class="px-2.5 py-1 rounded-md text-xs font-medium bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white cursor-pointer"
+              >
+                Not Selected
+              </button>
+            </td>
+          </tr>
+        `)
+        .join('');
+    }
+
+    async function refreshPortal(preferStudentId = null) {
+      const [studentsRes, drivesRes, appsRes] = await Promise.all([
+        fetch('/api/students'),
+        fetch('/api/drives'),
+        fetch('/api/applications'),
+      ]);
+
+      studentsList = await studentsRes.json();
+      drivesList = await drivesRes.json();
+      allApplications = await appsRes.json();
+
+      const prevStudent = preferStudentId || activeStudentSelect.value;
+      activeStudentSelect.innerHTML = studentsList
+        .map((s) => `<option value="${escapeHtml(s._id)}">${escapeHtml(s.rollNo)} — ${escapeHtml(s.name)} (CGPA ${escapeHtml(s.cgpa)})</option>`)
+        .join('');
+      if (prevStudent && studentsList.some((s) => s._id === prevStudent)) {
+        activeStudentSelect.value = prevStudent;
+      }
+
+      const prevDrive = adminDriveFilter.value;
+      adminDriveFilter.innerHTML = '<option value="ALL">All Drives</option>' +
+        drivesList.map((d) => `<option value="${escapeHtml(d._id)}">${escapeHtml(d.companyName)} — ${escapeHtml(d.role)} (${d.applicantCount})</option>`).join('');
+      if (prevDrive && (prevDrive === 'ALL' || drivesList.some((d) => d._id === prevDrive))) {
+        adminDriveFilter.value = prevDrive;
+      }
+
+      renderSelectedStudentProfile();
+      renderDrives();
+      renderMyApplications();
+      renderAdminApplicants();
+    }
+
+    tabStudent.addEventListener('click', () => switchView('student'));
+    tabAdmin.addEventListener('click', () => switchView('admin'));
+
+    activeStudentSelect.addEventListener('change', () => {
+      hideBanner(driveApplyAlert);
+      renderSelectedStudentProfile();
+      renderDrives();
+      renderMyApplications();
+    });
+
+    studentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(studentFormAlert);
+
+      const payload = {
+        rollNo: document.getElementById('rollNo').value.trim(),
+        branch: document.getElementById('branch').value.trim(),
+        name: document.getElementById('studentName').value.trim(),
+        email: document.getElementById('studentEmail').value.trim(),
+        cgpa: Number(document.getElementById('cgpa').value),
+        skills: document.getElementById('skills').value.trim(),
+      };
+
+      if (!payload.rollNo || !payload.branch || !payload.name || !payload.email || Number.isNaN(payload.cgpa)) {
+        showBanner(studentFormAlert, 'Roll No., Branch, Name, Email, and CGPA are required.', 'error');
+        return;
+      }
+
+      registerStudentBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not register student.');
+
+        studentForm.reset();
+        showBanner(studentFormAlert, `Registered ${data.name} (${data.rollNo}) and set as active profile.`, 'success');
+        await refreshPortal(data._id);
+      } catch (err) {
+        showBanner(studentFormAlert, err.message, 'error');
+      } finally {
+        registerStudentBtn.disabled = false;
+      }
+    });
+
+    drivesGrid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-apply-drive]');
+      if (!btn) return;
+      hideBanner(driveApplyAlert);
+
+      const driveId = btn.dataset.applyDrive;
+      const studentId = activeStudentSelect.value;
+
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/drives/${encodeURIComponent(driveId)}/apply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not apply to drive.');
+
+        showBanner(driveApplyAlert, 'Application submitted successfully!', 'success');
+        await refreshPortal();
+      } catch (err) {
+        showBanner(driveApplyAlert, err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    driveForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(addDriveAlert);
+
+      const payload = {
+        companyName: document.getElementById('companyName').value.trim(),
+        role: document.getElementById('role').value.trim(),
+        packageLpa: document.getElementById('packageLpa').value.trim(),
+        minCgpa: Number(document.getElementById('minCgpa').value),
+        location: document.getElementById('location').value.trim(),
+        driveDate: document.getElementById('driveDate').value,
+      };
+
+      if (!payload.companyName || !payload.role || !payload.packageLpa || !payload.location || !payload.driveDate || Number.isNaN(payload.minCgpa)) {
+        showBanner(addDriveAlert, 'All company drive fields are required.', 'error');
+        return;
+      }
+
+      addDriveBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/drives', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to publish drive.');
+
+        driveForm.reset();
+        document.getElementById('minCgpa').value = '7.0';
+        showBanner(addDriveAlert, `Published ${data.companyName} (${data.role}).`, 'success');
+        await refreshPortal();
+      } catch (err) {
+        showBanner(addDriveAlert, err.message, 'error');
+      } finally {
+        addDriveBtn.disabled = false;
+      }
+    });
+
+    adminDriveFilter.addEventListener('change', renderAdminApplicants);
+
+    toggleDriveStatusBtn.addEventListener('click', async () => {
+      const driveId = toggleDriveStatusBtn.dataset.driveId;
+      const nextStatus = toggleDriveStatusBtn.dataset.nextStatus;
+      if (!driveId) return;
+
+      hideBanner(adminAlert);
+      try {
+        const res = await fetch(`/api/drives/${encodeURIComponent(driveId)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update drive status.');
+        showBanner(adminAlert, `${data.companyName} drive marked as ${data.status}.`, 'success');
+        await refreshPortal();
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    });
+
+    adminApplicantsBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-mark-id]');
+      if (!btn) return;
+
+      hideBanner(adminAlert);
+      try {
+        const res = await fetch(`/api/applications/${encodeURIComponent(btn.dataset.markId)}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: btn.dataset.markStatus }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update selection status.');
+
+        showBanner(
+          adminAlert,
+          `${data.student?.name || 'Applicant'} marked as "${data.status}" for ${data.drive?.companyName || 'drive'}.`,
+          'success'
+        );
+        await refreshPortal();
+      } catch (err) {
+        showBanner(adminAlert, err.message, 'error');
+      }
+    });
+
+    document.getElementById('driveDate').value = new Date().toISOString().slice(0, 10);
+    refreshPortal();
+  </script>
+</body>
+</html>
