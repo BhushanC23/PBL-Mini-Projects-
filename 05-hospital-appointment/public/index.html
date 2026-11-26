@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Appointment Booking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Hospital Appointment Portal</h1>
+        <p class="text-sm text-slate-500">Book doctor consultations with automatic double-booking prevention</p>
+      </div>
+      <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-200 self-start sm:self-auto">
+        Upcoming Appointments: <strong id="upcomingCount">0</strong>
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Booking Form -->
+    <section class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+      <h2 class="text-base font-semibold text-slate-900 mb-1">Book Appointment</h2>
+      <p class="text-xs text-slate-500 mb-4">Same doctor, date, and time slot cannot be double-booked.</p>
+
+      <div id="bookingAlert" class="hidden mb-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <form id="bookingForm" class="space-y-3.5" novalidate>
+        <div>
+          <label for="patientName" class="block text-sm font-medium text-slate-700 mb-1">Patient Name</label>
+          <input
+            type="text"
+            id="patientName"
+            placeholder="e.g. Ananya Deshmukh"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label for="doctor" class="block text-sm font-medium text-slate-700 mb-1">Select Doctor</label>
+          <select
+            id="doctor"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          ></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="date" class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+            <input
+              type="date"
+              id="date"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="timeSlot" class="block text-sm font-medium text-slate-700 mb-1">Time Slot</label>
+            <select
+              id="timeSlot"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></select>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="bookBtn"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Confirm Appointment
+        </button>
+      </form>
+    </section>
+
+    <!-- Upcoming Appointments List -->
+    <section class="lg:col-span-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Upcoming Appointments</h2>
+          <p id="listSummary" class="text-xs text-slate-500 mt-0.5">Loading schedule...</p>
+        </div>
+
+        <select
+          id="doctorFilter"
+          aria-label="Filter by doctor"
+          class="w-full sm:w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="All">All Doctors</option>
+        </select>
+      </div>
+
+      <div id="tableAlert" class="hidden mx-5 mt-4 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-4 py-3">Date</th>
+              <th class="px-4 py-3">Time Slot</th>
+              <th class="px-4 py-3">Patient</th>
+              <th class="px-4 py-3">Doctor</th>
+              <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsTableBody" class="divide-y divide-slate-200 text-sm"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="hidden py-10 px-4 text-center text-sm text-slate-500">
+        No upcoming appointments scheduled.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const bookingForm = document.getElementById('bookingForm');
+    const patientNameInput = document.getElementById('patientName');
+    const doctorSelect = document.getElementById('doctor');
+    const dateInput = document.getElementById('date');
+    const timeSlotSelect = document.getElementById('timeSlot');
+    const bookBtn = document.getElementById('bookBtn');
+    const bookingAlert = document.getElementById('bookingAlert');
+
+    const upcomingCount = document.getElementById('upcomingCount');
+    const listSummary = document.getElementById('listSummary');
+    const doctorFilter = document.getElementById('doctorFilter');
+    const tableAlert = document.getElementById('tableAlert');
+    const appointmentsTableBody = document.getElementById('appointmentsTableBody');
+    const emptyState = document.getElementById('emptyState');
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === tableAlert ? 'mx-5 mt-4 ' : 'mb-4 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function setMinDate() {
+      const todayIso = new Date().toISOString().slice(0, 10);
+      dateInput.min = todayIso;
+      if (!dateInput.value) {
+        dateInput.value = todayIso;
+      }
+    }
+
+    async function loadMeta() {
+      const res = await fetch('/api/meta');
+      const data = await res.json();
+
+      doctorSelect.innerHTML = data.doctors
+        .map((d) => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`)
+        .join('');
+
+      doctorFilter.innerHTML = '<option value="All">All Doctors</option>' +
+        data.doctors.map((d) => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+
+      timeSlotSelect.innerHTML = data.timeSlots
+        .map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`)
+        .join('');
+    }
+
+    function renderAppointments(items) {
+      upcomingCount.textContent = items.length;
+      const filterLabel = doctorFilter.value === 'All' ? 'all doctors' : doctorFilter.value;
+      listSummary.textContent = `Showing ${items.length} upcoming appointment(s) for ${filterLabel}`;
+
+      if (items.length === 0) {
+        appointmentsTableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      appointmentsTableBody.innerHTML = items
+        .map((item) => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">${escapeHtml(item.date)}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                ${escapeHtml(item.timeSlot)}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">${escapeHtml(item.patientName)}</td>
+            <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${escapeHtml(item.doctor)}</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+              <button
+                type="button"
+                data-cancel-id="${escapeHtml(item._id)}"
+                class="text-rose-600 hover:text-rose-800 font-medium text-xs px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        `)
+        .join('');
+    }
+
+    async function loadAppointments() {
+      try {
+        hideBanner(tableAlert);
+        const doc = doctorFilter.value;
+        const query = doc && doc !== 'All' ? `?doctor=${encodeURIComponent(doc)}` : '';
+        const res = await fetch(`/api/appointments${query}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load appointments.');
+        renderAppointments(data);
+      } catch (err) {
+        showBanner(tableAlert, err.message, 'error');
+      }
+    }
+
+    bookingForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(bookingAlert);
+
+      const payload = {
+        patientName: patientNameInput.value.trim(),
+        doctor: doctorSelect.value,
+        date: dateInput.value,
+        timeSlot: timeSlotSelect.value,
+      };
+
+      if (!payload.patientName || !payload.doctor || !payload.date || !payload.timeSlot) {
+        showBanner(bookingAlert, 'Please fill in Patient Name, Doctor, Date, and Time Slot.', 'error');
+        return;
+      }
+
+      bookBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Could not book appointment.');
+        }
+
+        patientNameInput.value = '';
+        showBanner(
+          bookingAlert,
+          `Appointment confirmed for ${data.patientName} with ${data.doctor} on ${data.date} at ${data.timeSlot}.`,
+          'success'
+        );
+        await loadAppointments();
+      } catch (err) {
+        showBanner(bookingAlert, err.message, 'error');
+      } finally {
+        bookBtn.disabled = false;
+      }
+    });
+
+    doctorFilter.addEventListener('change', loadAppointments);
+
+    appointmentsTableBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-cancel-id]');
+      if (!btn) return;
+
+      if (!confirm('Cancel this appointment?')) return;
+
+      hideBanner(tableAlert);
+      try {
+        const res = await fetch(`/api/appointments/${encodeURIComponent(btn.dataset.cancelId)}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not cancel appointment.');
+
+        showBanner(tableAlert, 'Appointment cancelled and slot freed.', 'success');
+        await loadAppointments();
+      } catch (err) {
+        showBanner(tableAlert, err.message, 'error');
+      }
+    });
+
+    async function init() {
+      setMinDate();
+      await loadMeta();
+      await loadAppointments();
+    }
+
+    init();
+  </script>
+</body>
+</html>
