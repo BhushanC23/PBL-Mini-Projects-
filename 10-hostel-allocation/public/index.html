@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hostel Room Allocation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Hostel Room Allocation</h1>
+        <p class="text-sm text-slate-500">Manage rooms, allocate students within capacity, and monitor occupancy</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+        <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700">
+          Rooms: <strong id="statTotalRooms">0</strong>
+        </span>
+        <span class="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Vacant: <strong id="statVacantRooms">0</strong>
+        </span>
+        <span class="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          Occupied: <strong id="statOccupiedRooms">0</strong>
+        </span>
+        <span class="px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+          Occupancy: <strong id="statBeds">0 / 0</strong>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Add Room & Allocate Student -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Add Hostel Room -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-3">Add Hostel Room</h2>
+        <div id="roomAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="addRoomForm" class="space-y-3" novalidate>
+          <div>
+            <label for="roomNumber" class="block text-sm font-medium text-slate-700 mb-1">Room Number</label>
+            <input
+              type="text"
+              id="roomNumber"
+              placeholder="e.g. C-301"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="roomType" class="block text-sm font-medium text-slate-700 mb-1">Room Type</label>
+              <select
+                id="roomType"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="Single">Single</option>
+                <option value="Double">Double</option>
+                <option value="Triple">Triple</option>
+                <option value="Quad">Quad</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="capacity" class="block text-sm font-medium text-slate-700 mb-1">Capacity</label>
+              <input
+                type="number"
+                id="capacity"
+                min="1"
+                max="10"
+                value="2"
+                required
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="addRoomBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Add Room
+          </button>
+        </form>
+      </section>
+
+      <!-- Allocate Student -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-1">Allocate Student to Room</h2>
+        <p class="text-xs text-slate-500 mb-3">Allocating beyond room capacity is strictly blocked.</p>
+        <div id="allocAlert" class="hidden mb-3 rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+        <form id="allocateForm" class="space-y-3" novalidate>
+          <div>
+            <label for="roomSelect" class="block text-sm font-medium text-slate-700 mb-1">Select Room</label>
+            <select
+              id="roomSelect"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            ></select>
+          </div>
+
+          <div>
+            <label for="studentName" class="block text-sm font-medium text-slate-700 mb-1">Student Name</label>
+            <input
+              type="text"
+              id="studentName"
+              placeholder="e.g. Ananya Deshmukh"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="rollNo" class="block text-sm font-medium text-slate-700 mb-1">Roll No.</label>
+            <input
+              type="text"
+              id="rollNo"
+              placeholder="e.g. CS205"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="allocateBtn"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+          >
+            Allocate Bed
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Right Column: Rooms Directory (Vacant vs Occupied + Occupancy Counts) -->
+    <section class="lg:col-span-8 space-y-4">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
+        <div id="filterButtons" class="flex flex-wrap items-center gap-2">
+          <button type="button" data-filter="all" class="room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer">All Rooms</button>
+          <button type="button" data-filter="vacant" class="room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Vacant Only</button>
+          <button type="button" data-filter="occupied" class="room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Occupied</button>
+          <button type="button" data-filter="full" class="room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Full</button>
+        </div>
+        <span id="roomsCountLabel" class="text-xs text-slate-500">Loading rooms...</span>
+      </div>
+
+      <div id="boardAlert" class="hidden rounded-lg px-4 py-2.5 text-sm border" role="alert"></div>
+
+      <div id="roomsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+  </main>
+
+  <script>
+    const statTotalRooms = document.getElementById('statTotalRooms');
+    const statVacantRooms = document.getElementById('statVacantRooms');
+    const statOccupiedRooms = document.getElementById('statOccupiedRooms');
+    const statBeds = document.getElementById('statBeds');
+
+    const addRoomForm = document.getElementById('addRoomForm');
+    const roomNumberInput = document.getElementById('roomNumber');
+    const roomTypeSelect = document.getElementById('roomType');
+    const capacityInput = document.getElementById('capacity');
+    const addRoomBtn = document.getElementById('addRoomBtn');
+    const roomAlert = document.getElementById('roomAlert');
+
+    const allocateForm = document.getElementById('allocateForm');
+    const roomSelect = document.getElementById('roomSelect');
+    const studentNameInput = document.getElementById('studentName');
+    const rollNoInput = document.getElementById('rollNo');
+    const allocateBtn = document.getElementById('allocateBtn');
+    const allocAlert = document.getElementById('allocAlert');
+
+    const filterButtons = document.getElementById('filterButtons');
+    const roomsCountLabel = document.getElementById('roomsCountLabel');
+    const boardAlert = document.getElementById('boardAlert');
+    const roomsGrid = document.getElementById('roomsGrid');
+
+    let currentFilter = 'all';
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      const spacing = el === boardAlert ? '' : 'mb-3 ';
+      el.className = spacing + 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function updateFilterButtons() {
+      document.querySelectorAll('.room-filter-btn').forEach((btn) => {
+        const active = btn.dataset.filter === currentFilter;
+        btn.className = active
+          ? 'room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+          : 'room-filter-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+      });
+    }
+
+    function renderRoomSelect(allRooms) {
+      const previous = roomSelect.value;
+      roomSelect.innerHTML = allRooms
+        .map((r) => `<option value="${escapeHtml(r._id)}">Room ${escapeHtml(r.roomNumber)} (${escapeHtml(r.type)}) — ${r.occupancyCount}/${r.capacity} [${escapeHtml(r.status)}]</option>`)
+        .join('');
+
+      if (previous && allRooms.some((r) => r._id === previous)) {
+        roomSelect.value = previous;
+      }
+    }
+
+    function renderRooms(rooms) {
+      roomsCountLabel.textContent = `Showing ${rooms.length} room(s)`;
+
+      if (rooms.length === 0) {
+        roomsGrid.innerHTML = `
+          <div class="md:col-span-2 bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-500">
+            No rooms match this filter.
+          </div>
+        `;
+        return;
+      }
+
+      roomsGrid.innerHTML = rooms
+        .map((room) => {
+          let statusBadge = '';
+          if (room.status === 'Vacant') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Vacant</span>';
+          } else if (room.status === 'Full') {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Full (Occupied)</span>';
+          } else {
+            statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Occupied (Beds Open)</span>';
+          }
+
+          const occupantsHtml = room.occupants.length === 0
+            ? '<p class="text-xs text-slate-400 italic py-2">No students allocated yet.</p>'
+            : `<ul class="space-y-1.5">
+                ${room.occupants.map((occ) => `
+                  <li class="flex items-center justify-between text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                    <span>
+                      <strong class="text-slate-900">${escapeHtml(occ.studentName)}</strong>
+                      <span class="text-slate-500">(${escapeHtml(occ.rollNo)})</span>
+                    </span>
+                    <button
+                      type="button"
+                      data-vacate-room="${escapeHtml(room._id)}"
+                      data-vacate-roll="${escapeHtml(occ.rollNo)}"
+                      class="text-rose-600 hover:text-rose-800 font-medium cursor-pointer"
+                    >
+                      Vacate
+                    </button>
+                  </li>
+                `).join('')}
+              </ul>`;
+
+          return `
+            <article class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col justify-between gap-4">
+              <div class="space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 class="text-base font-bold text-slate-900">Room ${escapeHtml(room.roomNumber)}</h3>
+                    <p class="text-xs text-slate-500">${escapeHtml(room.type)} &bull; Capacity: ${room.capacity}</p>
+                  </div>
+                  ${statusBadge}
+                </div>
+
+                <div class="flex items-center justify-between text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  <span class="text-slate-600 font-medium">Current Occupancy</span>
+                  <span class="font-bold text-slate-900">${room.occupancyCount} / ${room.capacity}</span>
+                </div>
+
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Occupants</p>
+                  ${occupantsHtml}
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  data-pick-room="${escapeHtml(room._id)}"
+                  class="text-indigo-600 hover:text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-md border border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+                >
+                  Select to Allocate
+                </button>
+                ${
+                  room.occupancyCount === 0
+                    ? `<button type="button" data-delete-room="${escapeHtml(room._id)}" class="text-rose-600 hover:text-rose-800 text-xs font-medium px-2.5 py-1 rounded-md border border-rose-200 hover:bg-rose-50 cursor-pointer">Delete Room</button>`
+                    : ''
+                }
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadRooms() {
+      try {
+        hideBanner(boardAlert);
+        const res = await fetch(`/api/rooms?filter=${encodeURIComponent(currentFilter)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load rooms.');
+
+        statTotalRooms.textContent = data.summary.totalRooms;
+        statVacantRooms.textContent = data.summary.vacantRooms;
+        statOccupiedRooms.textContent = data.summary.occupiedRooms;
+        statBeds.textContent = `${data.summary.totalOccupiedBeds} / ${data.summary.totalBeds}`;
+
+        renderRoomSelect(data.allRooms);
+        renderRooms(data.rooms);
+      } catch (err) {
+        showBanner(boardAlert, err.message, 'error');
+      }
+    }
+
+    addRoomForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(roomAlert);
+
+      const payload = {
+        roomNumber: roomNumberInput.value.trim(),
+        type: roomTypeSelect.value,
+        capacity: Number(capacityInput.value),
+      };
+
+      if (!payload.roomNumber || Number.isNaN(payload.capacity) || payload.capacity < 1) {
+        showBanner(roomAlert, 'Valid Room Number, Type, and Capacity (>= 1) are required.', 'error');
+        return;
+      }
+
+      addRoomBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/rooms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to add room.');
+
+        addRoomForm.reset();
+        capacityInput.value = '2';
+        showBanner(roomAlert, `Room ${data.roomNumber} (${data.type}, cap ${data.capacity}) added.`, 'success');
+        await loadRooms();
+      } catch (err) {
+        showBanner(roomAlert, err.message, 'error');
+      } finally {
+        addRoomBtn.disabled = false;
+      }
+    });
+
+    allocateForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(allocAlert);
+
+      const roomId = roomSelect.value;
+      const studentName = studentNameInput.value.trim();
+      const rollNo = rollNoInput.value.trim();
+
+      if (!roomId || !studentName || !rollNo) {
+        showBanner(allocAlert, 'Room, Student Name, and Roll No. are all required.', 'error');
+        return;
+      }
+
+      allocateBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/rooms/${encodeURIComponent(roomId)}/allocate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentName, rollNo }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to allocate student.');
+
+        studentNameInput.value = '';
+        rollNoInput.value = '';
+        showBanner(
+          allocAlert,
+          `Allocated ${rollNo.toUpperCase()} to Room ${data.roomNumber} (${data.occupants.length}/${data.capacity}).`,
+          'success'
+        );
+        await loadRooms();
+      } catch (err) {
+        showBanner(allocAlert, err.message, 'error');
+      } finally {
+        allocateBtn.disabled = false;
+      }
+    });
+
+    filterButtons.addEventListener('click', (e) => {
+      const btn = e.target.closest('.room-filter-btn');
+      if (!btn) return;
+      currentFilter = btn.dataset.filter;
+      updateFilterButtons();
+      loadRooms();
+    });
+
+    roomsGrid.addEventListener('click', async (e) => {
+      const pickBtn = e.target.closest('button[data-pick-room]');
+      if (pickBtn) {
+        hideBanner(allocAlert);
+        roomSelect.value = pickBtn.dataset.pickRoom;
+        studentNameInput.focus();
+        return;
+      }
+
+      const vacateBtn = e.target.closest('button[data-vacate-room]');
+      if (vacateBtn) {
+        const roomId = vacateBtn.dataset.vacateRoom;
+        const rollNo = vacateBtn.dataset.vacateRoll;
+        if (!confirm(`Vacate student ${rollNo} from this room?`)) return;
+
+        hideBanner(boardAlert);
+        try {
+          const res = await fetch(`/api/rooms/${encodeURIComponent(roomId)}/occupants/${encodeURIComponent(rollNo)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to vacate student.');
+          showBanner(boardAlert, `Student ${rollNo} vacated from Room ${data.roomNumber}.`, 'success');
+          await loadRooms();
+        } catch (err) {
+          showBanner(boardAlert, err.message, 'error');
+        }
+        return;
+      }
+
+      const delBtn = e.target.closest('button[data-delete-room]');
+      if (delBtn) {
+        if (!confirm('Delete this vacant room?')) return;
+        hideBanner(boardAlert);
+        try {
+          const res = await fetch(`/api/rooms/${encodeURIComponent(delBtn.dataset.deleteRoom)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to delete room.');
+          showBanner(boardAlert, 'Room deleted.', 'success');
+          await loadRooms();
+        } catch (err) {
+          showBanner(boardAlert, err.message, 'error');
+        }
+      }
+    });
+
+    loadRooms();
+  </script>
+</body>
+</html>
