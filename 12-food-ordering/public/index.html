@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Food Ordering</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Campus Canteen &amp; Food Ordering</h1>
+        <p class="text-sm text-slate-500">Select items with quantity, review auto-calculated bill, and place your order</p>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-medium border border-indigo-200">
+          Selected: <strong id="headerQty">0</strong> item(s)
+        </span>
+        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">
+          Bill: <strong id="headerBill">&#8377;0</strong>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Menu & Order History -->
+    <div class="lg:col-span-8 space-y-6">
+      <section class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
+          <div id="categoryFilters" class="flex flex-wrap items-center gap-2">
+            <button type="button" data-cat="All" class="cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer">All</button>
+            <button type="button" data-cat="Meals" class="cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Meals</button>
+            <button type="button" data-cat="Snacks" class="cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Snacks</button>
+            <button type="button" data-cat="Beverages" class="cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer">Beverages</button>
+          </div>
+          <span id="menuCountLabel" class="text-xs text-slate-500">Loading menu...</span>
+        </div>
+
+        <div id="menuAlert" class="hidden rounded-lg px-4 py-2.5 text-sm border" role="alert"></div>
+        <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+      </section>
+
+      <!-- Order History Section -->
+      <section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">Order History</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Recent orders stored in MongoDB</p>
+          </div>
+          <span id="ordersCountLabel" class="text-xs font-medium text-slate-500">0 orders</span>
+        </div>
+
+        <div id="ordersHistoryList" class="divide-y divide-slate-200 text-sm"></div>
+      </section>
+    </div>
+
+    <!-- Right Column: Live Bill & Place Order -->
+    <aside class="lg:col-span-4 bg-white border border-slate-200 rounded-xl shadow-sm p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h2 class="text-base font-semibold text-slate-900">Your Order Bill</h2>
+        <button
+          type="button"
+          id="clearSelectionBtn"
+          class="text-xs text-slate-500 hover:text-rose-600 font-medium cursor-pointer"
+        >
+          Clear All
+        </button>
+      </div>
+
+      <div id="orderAlert" class="hidden rounded-lg px-3.5 py-2.5 text-sm border" role="alert"></div>
+
+      <div id="selectedItemsList" class="space-y-2.5 text-sm"></div>
+
+      <div class="border-t border-slate-200 pt-3 space-y-1.5 text-sm">
+        <div class="flex items-center justify-between text-slate-600">
+          <span>Total Items</span>
+          <span id="billItemCount" class="font-medium text-slate-900">0</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-slate-800">Total Bill</span>
+          <span id="billTotalAmount" class="text-xl font-bold text-indigo-600">&#8377;0</span>
+        </div>
+      </div>
+
+      <form id="orderForm" class="space-y-3 border-t border-slate-200 pt-4" novalidate>
+        <div>
+          <label for="customerName" class="block text-xs font-medium text-slate-700 mb-1">Your Name</label>
+          <input
+            type="text"
+            id="customerName"
+            placeholder="e.g. Rohan Kulkarni"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label for="tableOrRoom" class="block text-xs font-medium text-slate-700 mb-1">Table / Hostel Room</label>
+          <input
+            type="text"
+            id="tableOrRoom"
+            placeholder="e.g. Table 6 or B-204"
+            required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          id="placeOrderBtn"
+          disabled
+          class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+        >
+          Place Order
+        </button>
+      </form>
+    </aside>
+  </main>
+
+  <script>
+    const categoryFilters = document.getElementById('categoryFilters');
+    const menuCountLabel = document.getElementById('menuCountLabel');
+    const menuAlert = document.getElementById('menuAlert');
+    const menuGrid = document.getElementById('menuGrid');
+
+    const headerQty = document.getElementById('headerQty');
+    const headerBill = document.getElementById('headerBill');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    const orderAlert = document.getElementById('orderAlert');
+    const selectedItemsList = document.getElementById('selectedItemsList');
+    const billItemCount = document.getElementById('billItemCount');
+    const billTotalAmount = document.getElementById('billTotalAmount');
+
+    const orderForm = document.getElementById('orderForm');
+    const customerNameInput = document.getElementById('customerName');
+    const tableOrRoomInput = document.getElementById('tableOrRoom');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+    const ordersCountLabel = document.getElementById('ordersCountLabel');
+    const ordersHistoryList = document.getElementById('ordersHistoryList');
+
+    let allMenuItems = [];
+    let selectedCategory = 'All';
+    const quantities = {}; // menuItemId -> integer quantity
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = String(value ?? '');
+      return div.innerHTML;
+    }
+
+    function showBanner(el, message, type = 'error') {
+      el.textContent = message;
+      el.className = 'rounded-lg px-3.5 py-2.5 text-sm border ' + (
+        type === 'success'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
+      );
+    }
+
+    function hideBanner(el) {
+      el.classList.add('hidden');
+      el.textContent = '';
+    }
+
+    function renderMenu() {
+      const visible = selectedCategory === 'All'
+        ? allMenuItems
+        : allMenuItems.filter((item) => item.category === selectedCategory);
+
+      menuCountLabel.textContent = `${visible.length} item(s) shown`;
+
+      menuGrid.innerHTML = visible
+        .map((item) => {
+          const qty = quantities[item._id] || 0;
+          return `
+            <article class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col justify-between gap-4">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                    ${escapeHtml(item.category)}
+                  </span>
+                  <span class="text-base font-bold text-slate-900">&#8377;${escapeHtml(item.price)}</span>
+                </div>
+                <h3 class="text-base font-semibold text-slate-900">${escapeHtml(item.name)}</h3>
+                <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">${escapeHtml(item.description)}</p>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-xs text-slate-500">
+                  ${qty > 0 ? `Line total: <strong>\u20B9${qty * item.price}</strong>` : 'Select quantity'}
+                </span>
+                <div class="inline-flex items-center border border-slate-300 rounded-lg bg-slate-50">
+                  <button
+                    type="button"
+                    data-qty-delta="-1"
+                    data-item-id="${escapeHtml(item._id)}"
+                    class="px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-200 rounded-l-lg cursor-pointer"
+                  >
+                    &minus;
+                  </button>
+                  <span class="px-3 py-1 text-sm font-semibold text-slate-900 bg-white">${qty}</span>
+                  <button
+                    type="button"
+                    data-qty-delta="1"
+                    data-item-id="${escapeHtml(item._id)}"
+                    class="px-3 py-1 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 rounded-r-lg cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    function renderBill() {
+      const selected = allMenuItems
+        .filter((item) => (quantities[item._id] || 0) > 0)
+        .map((item) => ({
+          ...item,
+          qty: quantities[item._id],
+          lineTotal: quantities[item._id] * item.price,
+        }));
+
+      const totalItems = selected.reduce((sum, i) => sum + i.qty, 0);
+      const totalBill = selected.reduce((sum, i) => sum + i.lineTotal, 0);
+
+      headerQty.textContent = totalItems;
+      headerBill.textContent = `\u20B9${totalBill}`;
+      billItemCount.textContent = totalItems;
+      billTotalAmount.textContent = `\u20B9${totalBill}`;
+      placeOrderBtn.disabled = selected.length === 0;
+
+      if (selected.length === 0) {
+        selectedItemsList.innerHTML = '<p class="text-slate-500 text-center py-4">No items selected yet. Use + on the menu.</p>';
+        return;
+      }
+
+      selectedItemsList.innerHTML = selected
+        .map((item) => `
+          <div class="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            <div>
+              <p class="font-medium text-slate-900">${escapeHtml(item.name)}</p>
+              <p class="text-xs text-slate-500">&#8377;${item.price} &times; ${item.qty}</p>
+            </div>
+            <span class="font-semibold text-slate-900">&#8377;${item.lineTotal}</span>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderOrders(orders) {
+      ordersCountLabel.textContent = `${orders.length} order(s)`;
+
+      if (orders.length === 0) {
+        ordersHistoryList.innerHTML = '<p class="p-6 text-center text-slate-500">No orders placed yet.</p>';
+        return;
+      }
+
+      ordersHistoryList.innerHTML = orders
+        .map((order) => {
+          const itemsSummary = order.items
+            .map((i) => `${escapeHtml(i.name)} \u00D7 ${i.quantity} (\u20B9${i.lineTotal})`)
+            .join(', ');
+
+          return `
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <p class="font-medium text-slate-900">
+                  ${escapeHtml(order.customerName)}
+                  <span class="text-xs font-normal text-slate-500">&bull; ${escapeHtml(order.tableOrRoom)}</span>
+                </p>
+                <p class="text-xs text-slate-600 mt-0.5">${itemsSummary}</p>
+                <p class="text-xs text-slate-400 mt-0.5">${escapeHtml(new Date(order.createdAt).toLocaleString())}</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ${escapeHtml(order.status)}
+                </span>
+                <span class="text-base font-bold text-slate-900">&#8377;${escapeHtml(order.totalAmount)}</span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    async function loadMenu() {
+      try {
+        hideBanner(menuAlert);
+        const res = await fetch('/api/menu');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load menu.');
+
+        allMenuItems = data;
+        renderMenu();
+        renderBill();
+      } catch (err) {
+        showBanner(menuAlert, err.message, 'error');
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load order history.');
+        renderOrders(data);
+      } catch (err) {
+        ordersHistoryList.innerHTML = `<p class="p-5 text-rose-600">${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    categoryFilters.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cat-btn');
+      if (!btn) return;
+      selectedCategory = btn.dataset.cat;
+      document.querySelectorAll('.cat-btn').forEach((b) => {
+        const active = b.dataset.cat === selectedCategory;
+        b.className = active
+          ? 'cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white cursor-pointer'
+          : 'cat-btn px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer';
+      });
+      renderMenu();
+    });
+
+    menuGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-qty-delta]');
+      if (!btn) return;
+      hideBanner(orderAlert);
+      const id = btn.dataset.itemId;
+      const delta = Number(btn.dataset.qtyDelta);
+      const next = Math.max(0, (quantities[id] || 0) + delta);
+      if (next === 0) delete quantities[id];
+      else quantities[id] = next;
+
+      renderMenu();
+      renderBill();
+    });
+
+    clearSelectionBtn.addEventListener('click', () => {
+      Object.keys(quantities).forEach((k) => delete quantities[k]);
+      hideBanner(orderAlert);
+      renderMenu();
+      renderBill();
+    });
+
+    orderForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideBanner(orderAlert);
+
+      const items = Object.entries(quantities)
+        .filter(([, qty]) => qty > 0)
+        .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
+
+      const customerName = customerNameInput.value.trim();
+      const tableOrRoom = tableOrRoomInput.value.trim();
+
+      if (items.length === 0) {
+        showBanner(orderAlert, 'Please select at least one food item.', 'error');
+        return;
+      }
+
+      if (!customerName || !tableOrRoom) {
+        showBanner(orderAlert, 'Please enter your Name and Table / Room.', 'error');
+        return;
+      }
+
+      placeOrderBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerName, tableOrRoom, items }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not place order.');
+
+        Object.keys(quantities).forEach((k) => delete quantities[k]);
+        orderForm.reset();
+        renderMenu();
+        renderBill();
+        showBanner(orderAlert, `Order placed! Total Bill: \u20B9${data.totalAmount}`, 'success');
+        await loadOrders();
+      } catch (err) {
+        showBanner(orderAlert, err.message, 'error');
+      } finally {
+        placeOrderBtn.disabled = Object.keys(quantities).length === 0;
+      }
+    });
+
+    Promise.all([loadMenu(), loadOrders()]);
+  </script>
+</body>
+</html>
